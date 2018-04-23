@@ -17,7 +17,7 @@ def precision_recall(true_labels, pred_labels):
 class LogisticeRegression():
 
     def __init__(self,
-		alpha=1e-4,
+		alpha=1e-3,
 		reg=1e-3,
 		n_epochs=5000,
 		threshold=1e-4
@@ -45,14 +45,15 @@ class LogisticeRegression():
 		Binomial distribuiton, let loss be negative log likelihood.
 		loss = \log(\sum_{i=1}^{N} \theta^{y_i} (1-\theta)^(1-y_i))
 		= \sum_{i=1}^{N} y_i * \log \theta + (1-y_i) \log(1-\theta)
+         + 0.5 * W ** 2
 
 		\theta is sigmoid function:
 		\theta = \frac{1}{1 + exp(-W^T * X)}
 
 		Stochasic Gradient of w_j (j=0, 1, ..., M-1) and b.
 		\sigmoid' = \sigmoid(1-\sigmoid)
-		delta_{w_j} = (y_i - \sigmoid(X_i)) X_{ij}
-		delta_{b} = (y_i - \sigmoid(X_i))
+		delta_{w_j} = (y_i - \sigmoid(X_i)) X_{ij} + reg * w_j
+		delta_{b} = (y_i - \sigmoid(X_i)) + reg
         '''
 
         # Initializiation of parameters.
@@ -69,9 +70,9 @@ class LogisticeRegression():
 
                 for j in range(X.shape[1]):
                     self.coef_[j] -= self.alpha * (
-					 (y[i] - pred) * X[i][j])
+					 (y[i] - pred) * X[i][j] + self.reg * self.coef_[j])
                 self.intercept_ -= self.alpha * (
-					y[i] - pred)
+					y[i] - pred + self.reg)
 
             # compute loss
             cur_loss = self._compute_loss(X, y)
