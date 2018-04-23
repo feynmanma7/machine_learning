@@ -9,10 +9,12 @@ from sklearn import datasets
 
 class LinearRegression():
     def __init__(self,
-                 alpha=0.001,
+                 alpha=1e-3,
+                 reg=1e-4,
                  n_epoch=10000,
                  threshold=1e-4):
         self.alpha = alpha
+        self.reg = reg
         self.n_epoch = n_epoch
         self.threshold = threshold
 
@@ -25,18 +27,22 @@ class LinearRegression():
             error = pred - y[i]
             loss += error ** 2
 
-        return loss / len(X)
+        loss += 0.5 * self.reg * np.sum(
+            np.dot([self.coef_, self.intercept_],
+                   [self.coef_, self.intercept_]))
+
+        return 0.5 / len(X) * loss
 
 
     def fit(self, X, y):
 
         '''
         f = W * X + b
-        loss = sum_{i=1}^{N} (f(i) - y[i]) ** 2
+        loss = 0.5 * sum_{i=1}^{N} (f(i) - y[i]) ** 2 + 0.5 * reg * w ** 2
 
         SGD
-        delta_{w_j} = 2 (f(i) - y[i]) * X[i][j]
-        delta_{b} = 2 (f[i] - y[i])
+        delta_{w_j} = (f(i) - y[i]) * X[i][j] + reg * w_j
+        delta_{b} = (f[i] - y[i]) + reg * b
 
         w_j = w_j - alpha * delta_{w_j}
         b = b - alpha * delta_{b}
@@ -51,13 +57,14 @@ class LinearRegression():
 
             for i in range(len(X)):
                 pred = self.predict(X[i])
-
                 error = pred - y[i]
 
-                self.intercept_ -= self.alpha * (2 * error)
+                self.intercept_ -= self.alpha * (
+                    error + self.reg * self.intercept_)
 
                 for j in range(self.coef_.size):
-                    self.coef_[j] -= self.alpha * (2 * error) * X[i][j]
+                    self.coef_[j] -= self.alpha * (
+                        error * X[i][j] + self.reg * self.coef_[j])
 
             # compute loss
             cur_loss = self._compute_loss(X, y)
