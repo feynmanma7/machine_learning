@@ -207,7 +207,7 @@ class CARTRegressor:
             pred = self._predict(tree, x)
             preds.append(pred)
 
-        return preds
+        return np.array(preds)
 
 
 class CARTClassifier:
