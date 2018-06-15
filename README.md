@@ -1,17 +1,8 @@
-Machine Learning Algorithms
----
-# Linear Models
+Machine Learning: Motivation, Implementation and Application
+----
 
-## Linear Regression
-## Logistic Regression
 
-# Tree Models
-## Random Forest
-## GBDT
-## XGBoost
-## LightGBM
 
-# Graphical Models
-## LDA
+
 
 
