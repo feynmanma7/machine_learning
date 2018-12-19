@@ -2,3 +2,5 @@
 ./.idea*
 *.pyc
 */.ipynb_checkpoints/*
+*.swp
+*.swp

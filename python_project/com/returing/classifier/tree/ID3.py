@@ -212,6 +212,7 @@ class ID3:
             results.append(self._predict(x))
 
         return results
+        #return np.array(X).astype(np.float), np.array(Y).astype(np.float)
 
 
 

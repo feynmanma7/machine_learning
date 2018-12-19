@@ -7,6 +7,8 @@ class Node:
     split_attr_value = None
     left_child = None
     right_child = None
+    is_left = None
+    is_right = None
 
     # row index list of samples in current None, memory costly
     row_idx_list = None
@@ -37,8 +39,14 @@ class RegressionTree():
     root = None
     impurity_threshold = 0.8
 
-    def __init__(self):
-        pass
+    def __init__(self,
+                 max_depth = 5,
+                 min_num_of_leaf = 1,
+                 impurity_threshold = 0.8):
+        self.max_depth = max_depth
+        self.min_num_of_leaf = min_num_of_leaf
+        self.impurity_threshold = impurity_threshold
+
 
     def _compute_region_loss(self, Y_region):
         # Variance
@@ -143,7 +151,10 @@ class RegressionTree():
 
         """
 
-        if node == None or node.is_leaf == True or node.row_idx_list == None \
+        if node == None:
+            return
+
+        if node.is_leaf == True or node.row_idx_list == None \
                 or attr_idx_list == None or len(attr_idx_list) <= 0:
             node.is_leaf = True
             return
@@ -184,6 +195,8 @@ class RegressionTree():
         row_idx_list = list(range(X.shape[0]))
         attr_idx_list = list(range(X.shape[1]))
 
+        self.max_depth = min(self.max_depth, len(attr_idx_list))
+
         self.root.set_row_idx_list(row_idx_list)
         self.root.depth = 1
 
@@ -213,7 +226,8 @@ class RegressionTree():
         for x in X:
             results.append(self._predict(x))
 
-        return results
+        return np.array(results).astype(np.float).reshape((X.shape[0], 1))
+
 
     def print_tree(self):
 
@@ -240,6 +254,11 @@ class RegressionTree():
                 q.put(node.right_child)
 
 def generate_data():
+
+    """
+    att1,att2,att3,attr3,y
+    y = 0 or 1
+    """
     input_path = '/Users/flyingman/Data/bi_iris'
 
     X = []
@@ -266,9 +285,12 @@ def main():
 
     for result, y in zip(results, Y):
         print(result, y)
-    #print(results)
+    print(results)
 
-    # reg_tree.print_tree()
+    reg_tree.print_tree()
 
 if __name__ == '__main__':
+
     main()
+
+
