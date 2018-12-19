@@ -215,8 +215,6 @@ class ID3:
 
 
 
-
-
 def main():
     X, Y = generate_data()
 
