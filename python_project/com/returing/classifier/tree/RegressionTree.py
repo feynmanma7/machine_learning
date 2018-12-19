@@ -1,3 +1,4 @@
+from com.returing.metrics.base import compute_accuracy
 import queue
 import numpy as np
 np.random.seed(20170430)
@@ -281,13 +282,14 @@ def main():
 
     reg_tree = RegressionTree()
     reg_tree.fit(X, Y)
-    results = reg_tree.predict(X)
 
-    for result, y in zip(results, Y):
-        print(result, y)
-    print(results)
+    Y_pred = reg_tree.predict(X)
 
-    reg_tree.print_tree()
+    for y_pred, y in zip(Y_pred, Y):
+        print(y_pred, y)
+
+    accuracy = compute_accuracy(Y, Y_pred)
+    print("Train accuracy = %s" % accuracy)
 
 if __name__ == '__main__':
 

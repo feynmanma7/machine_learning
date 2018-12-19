@@ -1,4 +1,5 @@
-from RegressionTree import RegressionTree, generate_data
+from com.returing.classifier.tree.RegressionTree import RegressionTree, generate_data
+from com.returing.metrics.base import compute_accuracy
 import numpy as np
 np.random.seed(20170430)
 
@@ -47,10 +48,13 @@ def main():
     clf = GBDT()
     clf.fit(X, Y)
 
-    results = clf.predict(X)
+    Y_pred = clf.predict(X)
 
-    for result, y in zip(results, Y):
-        print(result, y)
+    for y_pred, y in zip(Y_pred, Y):
+        print(y_pred, y)
+
+    accuracy = compute_accuracy(Y, Y_pred)
+    print("Train accuracy=%s" % accuracy)
 
 
 if __name__ == '__main__':
