@@ -249,7 +249,7 @@ class Tree:
 
 
     def _print_node(self, node):
-        print("Node depth=%s, weight=%s, is_leaf=%s, "
+        print("Node depth=%s, weight=%.4f, is_leaf=%s, "
               "split_attr_idx=%s, split_attr_value=%s" %
               (node.depth,
                node.weight,
@@ -276,14 +276,14 @@ class XGBoost:
     trees = None
     gamma = 1e-2 # regularization parameter for n_leaf
     lambda_ = 1e-2 # leaf weight
-    lr = 1e-3 # learning rate
+    lr = 1e-1 # learning rate
 
     def __init__(self,
                  max_n_trees=5,
                  max_depth=5,
                  gamma=1e-2,
                  lambda_=1e-2,
-                 lr=1e-3):
+                 lr=1e-1):
         self.max_n_trees = max_n_trees
         self.max_depth = max_depth
         self.gamma = gamma
@@ -306,7 +306,6 @@ class XGBoost:
         Y_pred_last = rt.predict(X)
         """
 
-
         # Y_cur = Y.copy()
 
         # Bad Initialization for all-0.5 !!!
@@ -328,7 +327,16 @@ class XGBoost:
             self.trees.append(tree)
 
             Y_pred_t = tree.predict(X)
+
             Y_pred_last += self.lr * Y_pred_t
+
+            """
+            if t == 0:
+                Y_pred_last = Y_pred_t * self.lr
+            else:
+                Y_pred_last += Y_pred_t * self.lr
+            """
+
 
 
     def _predict(self, x):
@@ -346,28 +354,27 @@ class XGBoost:
 
         Y_pred = np.zeros((X.shape[0], 1))
 
-        for tree in self.trees:
-            Y_pred += tree.predict(X)
+        for i in range(len(self.trees)):
+            tree = self.trees[i]
+
+            # Y_pred += tree.predict(X) * self.lr
+            Y_pred += tree.predict(X) # !!!!
+
+            """
+            if i == 0:
+                Y_pred += tree.predict(X)
+            else:
+                Y_pred += tree.predict(X) * self.lr
+            """
 
         return Y_pred
-
-        """
-        Y_pred = []
-
-        for x in X:
-            y_pred = self._predict(x)
-            Y_pred.append([y_pred])
-
-        return np.array(Y_pred).astype(np.float).reshape((X.shape[0], 1))
-        """
 
 
 def main():
     X, Y = generate_data()
 
-    clf = XGBoost(max_n_trees=2, gamma=1e-3, lambda_=1e-3, lr=1e-3)
+    clf = XGBoost(max_n_trees=5, gamma=1e-3, lambda_=1e-3, lr=1e-1)
     clf.fit(X, Y)
-
 
     Y_pred = clf.predict(X)
 
@@ -377,14 +384,14 @@ def main():
     accuracy = compute_accuracy(Y, Y_pred)
     print("XGBoost Train accuracy = %.4f " % accuracy)
 
-    """
-    for i in range(1, len(clf.trees)):
+
+    for i in range(0, len(clf.trees)):
         print("-------Tree %s" % i)
         tree = clf.trees[i]
         tree.print_tree(tree.root, is_print_leaf=True)
         #tree.print_tree(tree.root, True)
         print("\n\n")
-    """
+
 
 
 
