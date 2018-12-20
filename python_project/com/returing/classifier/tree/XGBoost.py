@@ -310,9 +310,9 @@ class XGBoost:
 
         # Bad Initialization for all-0.5 !!!
         # Initialization as 0.5 for each class
-        # Y_pred_last = np.ones(Y.shape) * 0.5
+        Y_pred_last = np.ones(Y.shape) * 0.5
 
-        Y_pred_last = np.random.random(Y.shape)
+        # Y_pred_last = np.random.random(Y.shape)
 
         # Stop Criterion
         for t in range(self.max_n_trees):
@@ -373,7 +373,7 @@ class XGBoost:
 def main():
     X, Y = generate_data()
 
-    clf = XGBoost(max_n_trees=5, gamma=1e-3, lambda_=1e-3, lr=1e-1)
+    clf = XGBoost(max_n_trees=3, gamma=1e-3, lambda_=1e-3, lr=1e-1)
     clf.fit(X, Y)
 
     Y_pred = clf.predict(X)
