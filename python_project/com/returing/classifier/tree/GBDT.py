@@ -24,6 +24,8 @@ class GBDT:
             self.trees.append(rt)
 
             Y_pred = rt.predict(X)
+
+            # Negative gradient
             Y_t = Y_t - Y_pred
 
 
@@ -45,7 +47,7 @@ class GBDT:
 def main():
     X, Y = generate_data()
 
-    clf = GBDT()
+    clf = GBDT(max_n_trees=5)
     clf.fit(X, Y)
 
     Y_pred = clf.predict(X)

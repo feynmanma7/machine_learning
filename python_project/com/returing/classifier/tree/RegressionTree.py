@@ -230,7 +230,12 @@ class RegressionTree():
         return np.array(results).astype(np.float).reshape((X.shape[0], 1))
 
 
-    def print_tree(self):
+    def print_tree_recursively(self, is_leaf=False):
+        node = self.root
+        pass
+
+
+    def print_tree(self, is_print_leaf=False):
 
         node = self.root
 
