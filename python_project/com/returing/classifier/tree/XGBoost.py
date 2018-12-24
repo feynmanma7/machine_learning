@@ -1,5 +1,6 @@
 from com.returing.classifier.tree.RegressionTree import generate_data, RegressionTree
-from com.returing.metrics.base import compute_accuracy, compute_auc
+from com.returing.metrics.base import compute_accuracy, compute_auc, compute_auc_math
+from sklearn.metrics import roc_auc_score
 import numpy as np
 np.random.seed(20170430)
 
@@ -383,8 +384,13 @@ def main():
 
     accuracy = compute_accuracy(Y, Y_pred)
     auc = compute_auc(Y, Y_pred)
+    auc_math = compute_auc_math(Y, Y_pred)
     print("XGBoost Train accuracy = %.4f " % accuracy)
     print("XGBoost Train auc = %.4f " % auc)
+    print("XGBoost Train auc_math = %.4f " % auc_math)
+
+    auc = roc_auc_score(Y, Y_pred)
+    print("Sklearn auc=%.4f" % auc)
 
 
     for i in range(0, len(clf.trees)):
