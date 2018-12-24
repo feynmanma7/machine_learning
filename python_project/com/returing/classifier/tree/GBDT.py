@@ -1,5 +1,5 @@
 from com.returing.classifier.tree.RegressionTree import RegressionTree, generate_data
-from com.returing.metrics.base import compute_accuracy
+from com.returing.metrics.base import compute_accuracy, compute_auc
 import numpy as np
 np.random.seed(20170430)
 
@@ -56,7 +56,10 @@ def main():
         print(y_pred, y)
 
     accuracy = compute_accuracy(Y, Y_pred)
-    print("Train accuracy=%s" % accuracy)
+    auc = compute_auc(Y, Y_pred)
+
+    print("Train accuracy=%.4f" % accuracy)
+    print("Train auc=%.4f" % auc)
 
 
 if __name__ == '__main__':
