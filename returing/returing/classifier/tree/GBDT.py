@@ -1,5 +1,5 @@
-from com.returing.classifier.tree.RegressionTree import RegressionTree, generate_data
-from com.returing.metrics.base import compute_accuracy, compute_auc, compute_auc_math
+from returing.classifier.tree.RegressionTree import RegressionTree, generate_data
+from returing import compute_accuracy, compute_auc, compute_auc_math
 from sklearn.metrics import roc_auc_score
 import numpy as np
 np.random.seed(20170430)

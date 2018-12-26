@@ -1,5 +1,5 @@
 #encoding:utf-8
-from com.returing.classifier.tree.my_util import generate_data
+from returing.classifier.tree.my_util import generate_data
 
 import numpy as np
 np.random.seed(20170430)

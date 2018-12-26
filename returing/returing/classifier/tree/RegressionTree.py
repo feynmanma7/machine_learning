@@ -1,4 +1,4 @@
-from com.returing.metrics.base import compute_accuracy
+from returing import compute_accuracy
 import queue
 import numpy as np
 np.random.seed(20170430)

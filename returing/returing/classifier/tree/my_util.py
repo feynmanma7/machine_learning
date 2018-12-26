@@ -1,6 +1,7 @@
 import numpy as np
 np.random.seed(20170430)
 
+
 def generate_data():
 
     attr_1_set = np.array([1, 2, 3, 4])

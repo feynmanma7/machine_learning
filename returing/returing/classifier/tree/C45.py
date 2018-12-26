@@ -1,5 +1,5 @@
-from com.returing.classifier.tree.ID3 import ID3
-from com.returing.classifier.tree.my_util import generate_data
+from returing.classifier.tree.ID3 import ID3
+from returing.classifier.tree.my_util import generate_data
 import numpy as np
 np.random.seed(20170430)
 

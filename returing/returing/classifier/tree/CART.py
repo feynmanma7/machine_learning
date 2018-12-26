@@ -1,8 +1,7 @@
-from ID3 import ID3
-from my_util import generate_data
+from returing.classifier.tree.ID3 import ID3
+from returing.classifier.tree.my_util import generate_data
 import numpy as np
 np.random.seed(20170430)
-
 
 class CART(ID3):
 
@@ -10,9 +9,7 @@ class CART(ID3):
         super(CART, self).__init__()
 
     def _compute_gini_index(self, X, Y, row_idx_list):
-
         """
-
         :param X:
         :param Y:
         :param attr_idx:
@@ -73,14 +70,21 @@ class CART(ID3):
         if attr_idx_list == None or len(attr_idx_list) <= 0:
             return -1
 
-        max_gini_index = -1
+        # max_gini_index = -1
+        """
+        The smaller gini_index, the better the impurity of the node 
+        after split at current attribute.
+        """
+        min_gini_index = np.Infinity
         best_attr_idx = -1
 
         for attr_idx in attr_idx_list:
             gini_index = self._compute_attr_gini_index(
                 X, Y, attr_idx, row_idx_list)
-            if gini_index > max_gini_index:
-                max_gini_index = gini_index
+            # if gini_index > max_gini_index:
+            if gini_index < min_gini_index:
+                # max_gini_index = gini_index
+                min_gini_index = gini_index
                 best_attr_idx = attr_idx
 
         return best_attr_idx
