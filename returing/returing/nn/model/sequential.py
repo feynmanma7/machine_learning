@@ -1,51 +1,89 @@
 from . import Model
-from returing.nn.utils.initialization import random_init_tensor
+from returing.nn.tensor import Tensor
+from returing.nn.operation import Operation
 from returing.nn.operation.base import Matmul, Add
+from returing.nn.utils.initialization import random_init_tensor
+
 import numpy as np
 np.random.seed(20170430)
 
 
 class Sequential(Model):
 
-    def __init__(self,
-                 n_input,
-                 n_output,
-                 is_bias=True,
-                 *args, **kwargs):
-        super(Sequential, self).__init__(args, kwargs)
+    def __init__(self, *args):
+        super(Sequential, self).__init__(args)
 
-        self.n_input = n_input
-        self.n_output = n_output
-        self.is_bias = is_bias
+        if isinstance(args, Model) or \
+                isinstance(args, tuple):
+            self.model_list = args
+        else:
+            self.model_list = None
 
-        # Initialization weights and bias (if necessary)
-        self.W = random_init_tensor((n_input, n_output),
-                             requires_grad=True,
-                             name='W')
+    def add_model(self, model):
+        assert isinstance(model, Model)
 
-        if self.is_bias:
-            self.b = random_init_tensor((1, n_output),
-                                 requires_grad=True,
-                                 name='b')
+        if self.model_list:
+            self.model_list.append(model)
+        else:
+            self.model_list = [model]
+
+    """
+    def compile(self, loss_fn='mse',
+                activation='sigmoid',
+                optimizer='sgd',
+                stop_criterion=1e-3,
+                early_stopping=1000):
+                pass
+    """
+
+    def fit(self, X, Y,
+            batch_size=1,
+            epochs=1,
+            verbose=0
+            ):
+
+        assert isinstance(X, Tensor) or isinstance(X, list)
+        assert isinstance(Y, Tensor) or isinstance(Y, list)
+
+        self.batch_size = batch_size
+        self.epochs = epochs
+
+        for epoch in range(self.epochs):
+            # ===== Forward
+            Y_pred = X
+            for model in self.model_list:
+                Y_pred = model.forward(Y_pred)
+
+            # ===== Backward
+            # Compute Loss
+            # Compute the gradient(np.ndarray) of all of the weights.
+            self.loss_tensor = self.loss_fn(Y, Y_pred)
+            self.loss_tensor.backward()
+
+            # === Record: cur_iter, cur_loss, cur_params
+            # === Update: best_iter, min_loss
+            self.cur_epoch = epoch
+            self.cur_loss_val = np.asscalar(self.loss_tensor.data)
+            if self.cur_loss_val < self.min_loss_val:
+                self.min_loss_val = self.cur_loss_val
+                self.best_epoch = self.cur_epoch
+                self.best_W = self.W
+                self.best_b = self.b
+
+            if verbose == 1:
+                print("Epoch %d, cur_loss=%.4f, "
+                      "best_epoch=%d, min_loss=%.4f" %
+                      (epoch, self.cur_loss_val,
+                       self.best_epoch, self.min_loss_val))
+
+            # ===== Optimizer
+            # Update parameters one-step
+            self.optimizer.step(self.loss_tensor)
+
 
     def forward(self, *args):
-        """
-            X: [n_samples, n_input]
-            Y_pred: [n_samples, n_output]
+        Y_pred = args
+        for model in self.model_list:
+            Y_pred = model(Y_pred)
 
-            Y_pred = Activation()(matmul(X, W) + b)
-
-            W: [n_input, n_output]
-            b: [1, n_output]
-        """
-        self.Y_pred = Matmul()(self.X, self.W)
-
-        if self.is_bias:
-            self.Y_pred = Add()(self.Y_pred, self.b)
-
-        self.Y_pred = self.activation(self.Y_pred)
-        self.loss_tensor = self.loss_fn(self.Y, self.Y_pred)
-
-        self.optimizer.set_loss_tensor(self.loss_tensor)
-
-        return self.Y_pred
+        return Y_pred

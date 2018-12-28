@@ -2,28 +2,22 @@ from returing.nn.tensor import Tensor
 #from . import Optimizer
 import numpy as np
 np.random.seed(20170430)
-
+np.seterr(invalid='ignore') # ??? Is this set ok ?
 
 class SGD(Tensor):
 
-    lr = None
-    loss_tensor = None
-
-    def __init__(self, lr=1e-3,
-        loss_val=None, **kwargs):
-        super(SGD, self).__init__(loss_val, **kwargs)
-
+    def __init__(self, lr=1e-3, *args, **kwargs):
+        super(SGD, self).__init__(lr, *args, **kwargs)
         self.lr = lr
-        self.loss_tensor = loss_val
-
-    def set_loss_tensor(self, loss_tensor):
-        self.loss_tensor = loss_tensor
 
     def _update_parameters(self, node):
+
         if not node:
             return
 
-        # if node.requires_grad == True:
+        if not node.requires_grad:
+            return
+
         if isinstance(node.grad, np.ndarray):
             node.data = node.data - self.lr * node.grad
 
@@ -32,10 +26,11 @@ class SGD(Tensor):
         if node.right_child:
             self._update_parameters(node.right_child)
 
-    def step(self):
-        # !!! Update parameters just one time
+    def step(self, loss_tensor):
 
-        if self.loss_tensor:
-            self._update_parameters(self.loss_tensor)
+        assert isinstance(loss_tensor, Tensor)
+
+        # !!! Update parameters just one time
+        self._update_parameters(loss_tensor)
 
 

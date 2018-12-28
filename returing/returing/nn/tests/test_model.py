@@ -18,11 +18,9 @@ def test_Dense():
     X = Tensor(np.random.randn(n_samples, n_input),
                requires_grad=False,
                name='X')
-    old_X = X.data
-
     Y = Tensor(np.random.randn(n_samples, n_output),
                name='Y')
-    old_Y = Y.data
+
 
     model = dnn.Dense(n_input, n_output, bias=True)
 
@@ -46,17 +44,15 @@ def test_Linear():
     X = Tensor(np.random.randn(n_samples, n_input),
                requires_grad=False,
                name='X')
-    old_X = X.data
-
     Y = Tensor(np.random.randn(n_samples, n_output),
                name='Y')
-    old_Y = Y.data
 
     model = linear.Linear(n_input, n_output, bias=True)
 
     loss_fn = mse.MSELoss()
     optim = sgd.SGD(lr=1e-3)
     model.compile(loss_fn=loss_fn, optimizer=optim)
+
     model.fit(X, Y, verbose=0, epochs=100)
 
     print('Linear best_epoch=%s, min_loss=%.4f' %
@@ -65,8 +61,4 @@ def test_Linear():
 
 if __name__ == '__main__':
     test_Linear()
-    test_Linear()
-    test_Linear()
-    test_Dense()
-    test_Dense()
     test_Dense()

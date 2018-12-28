@@ -1,6 +1,7 @@
 from . import Model
 from returing.nn.utils.initialization import random_init_tensor
 from returing.nn.operation.base import Matmul, Add
+from returing.nn.tensor import Tensor
 import numpy as np
 np.random.seed(20170430)
 
@@ -38,17 +39,13 @@ class Linear(Model):
         b: [1, n_output]
         """
 
-        self.Y_pred = Matmul()(self.X, self.W)
+        assert len(args) == 1
+        assert isinstance(args[0], Tensor)
+        X = args[0]
+
+        Y_pred = Matmul()(X, self.W)
 
         if self.is_bias:
-            self.Y_pred = Add()(self.Y_pred, self.b)
+            Y_pred = Add()(Y_pred, self.b)
 
-        # Return value of Loss_function(Operation) is Tensor
-        self.loss_tensor = self.loss_fn(self.Y, self.Y_pred)
-
-        # !!! Pass loss_val to optimizer, backward update parameters.
-        self.optimizer.set_loss_tensor(self.loss_tensor)
-
-        return self.Y_pred
-
-
+        return Y_pred

@@ -1,6 +1,7 @@
 from . import Model
 from returing.nn.utils.initialization import random_init_tensor
 from returing.nn.operation.base import Matmul, Add
+from returing.nn.tensor import Tensor
 import numpy as np
 np.random.seed(20170430)
 
@@ -38,14 +39,16 @@ class Dense(Model):
             W: [n_input, n_output]
             b: [1, n_output]
         """
-        self.Y_pred = Matmul()(self.X, self.W)
+
+        assert len(args) == 1
+        assert isinstance(args[0], Tensor)
+
+        X = args[0]
+
+        Y_pred = Matmul()(X, self.W)
 
         if self.is_bias:
-            self.Y_pred = Add()(self.Y_pred, self.b)
+            Y_pred = Add()(Y_pred, self.b)
 
-        self.Y_pred = self.activation(self.Y_pred)
-        self.loss_tensor = self.loss_fn(self.Y, self.Y_pred)
-
-        self.optimizer.set_loss_tensor(self.loss_tensor)
-
-        return self.Y_pred
+        Y_pred = self.activation(Y_pred)
+        return Y_pred

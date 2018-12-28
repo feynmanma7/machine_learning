@@ -4,7 +4,6 @@ from returing.nn.operation import Operation
 from returing.nn.operation.loss import mse
 from returing.nn.operation.activation import sigmoid, relu
 
-#from returing.nn.optimizer import Optimizer
 from returing.nn.optimizer import sgd
 
 import numpy as np
@@ -18,9 +17,6 @@ class Model(Operation):
     stop_criterion = None
     early_stopping = None
 
-    X = None
-    Y = None
-
     activation = None
     loss_fn = None
     optimizer = None
@@ -30,17 +26,15 @@ class Model(Operation):
 
     loss_tensor = None
 
-    """
-    loss_fn is loss function
-    loss_val is the Value of loss function 
-    """
-
     def __init__(self,
                  loss=None,
                  batch_size=1,
                  epochs=1,
                  stop_criterion=1e-3,
-                 early_stopping=1000
+                 early_stopping=1000,
+                 optimizer='sgd',
+                 activation='relu',
+                 loss_fn='mse'
                  ):
 
         super(Model, self).__init__()
@@ -56,6 +50,12 @@ class Model(Operation):
         self.best_epoch = -1
         self.min_loss_val = np.Infinity
 
+        self.compile(loss_fn=loss_fn,
+                     activation=activation,
+                     optimizer=optimizer,
+                     stop_criterion=stop_criterion,
+                     early_stopping=early_stopping)
+
     def compile(self, loss_fn='mse',
                 activation='sigmoid',
                 optimizer='sgd',
@@ -66,7 +66,7 @@ class Model(Operation):
             self.loss_fn = mse.MSELoss()
         else:
             self.loss_fn = loss_fn
-        assert isinstance(loss_fn, Operation)
+        assert isinstance(self.loss_fn, Operation)
 
         if optimizer == 'sgd':
             self.optimizer = sgd.SGD()
@@ -77,20 +77,13 @@ class Model(Operation):
         if activation == 'sigmoid':
             self.activation = sigmoid.Sigmoid()
         elif activation == 'relu':
-            self.activation = relu.ReLU
+            self.activation = relu.ReLU()
         else:
             self.activation = activation
-        # assert isinstance(self.activation, Operation)
+        assert isinstance(self.activation, Operation)
 
         self.stop_criterion = stop_criterion
         self.early_stopping = early_stopping
-
-    """
-    def fit(self, X, Y):
-        #This is a in-efficient implementation of fit,
-        #which loads the whole data into memory at first.
-        raise NotImplementedError
-    """
 
     def fit(self, X, Y,
             batch_size=1,
@@ -98,22 +91,24 @@ class Model(Operation):
             verbose=0
             ):
 
-        assert isinstance(X, Tensor)
-        assert isinstance(Y, Tensor)
+        assert isinstance(X, Tensor) or isinstance(X, list)
+        assert isinstance(Y, Tensor) or isinstance(Y, list)
         assert isinstance(self.loss_fn, Operation)
         #assert self.activation == None or isinstance(self.activation, Operation)
         assert isinstance(self.optimizer, Tensor)
-
-        self.X = X
-        self.Y = Y
 
         self.batch_size = batch_size
         self.epochs = epochs
 
         for epoch in range(self.epochs):
-            # ===== Forward,
-            # Compute the total graph, get loss(Tensor).
-            self.forward()
+            # ===== Forward
+            Y_pred = self.forward(X)
+
+            # ===== Backward
+            # Compute Loss
+            # Compute the gradient(np.ndarray) of all of the weights.
+            self.loss_tensor = self.loss_fn(Y, Y_pred)
+            self.loss_tensor.backward()
 
             # === Record: cur_iter, cur_loss, cur_params
             # === Update: best_iter, min_loss
@@ -131,29 +126,27 @@ class Model(Operation):
                       (epoch, self.cur_loss_val,
                        self.best_epoch, self.min_loss_val))
 
-            # ===== Backward
-            # Compute the gradient(np.ndarray) of all of the weights.
-            self.backward()
-
             # ===== Optimizer
             # Update parameters one-step
-            self.optimizer.step()
+            self.optimizer.step(self.loss_tensor)
 
 
     def fit_batch(self, X, Y):
         pass
 
     def forward(self, *args):
-        pass
+        raise NotImplementedError
 
     def predict(self, X):
-        self.X = X # ! Bad way to pass value!
+        # self.X = X # ! Bad way to pass value!
 
         self.W = self.best_W
         self.b = self.best_b
 
-        Y_pred = self.forward()
+        Y_pred = self.forward(X)
         return Y_pred
 
+    """
     def backward(self):
         self.loss_tensor.backward()
+    """
