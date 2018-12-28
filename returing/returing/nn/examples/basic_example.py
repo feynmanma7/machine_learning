@@ -1,7 +1,6 @@
-from ..data.binary_classification import generate_data
+from returing.data.binary_classification import generate_data
 import numpy as np
 np.random.seed(20170430)
-
 
 
 def main():
