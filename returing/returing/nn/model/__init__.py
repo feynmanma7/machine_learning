@@ -138,10 +138,11 @@ class Model(Operation):
         raise NotImplementedError
 
     def predict(self, X):
-        # self.X = X # ! Bad way to pass value!
-
-        self.W = self.best_W
-        self.b = self.best_b
+        """
+        Use Current Weights.
+        """
+        #self.W = self.best_W
+        #self.b = self.best_b
 
         Y_pred = self.forward(X)
         return Y_pred

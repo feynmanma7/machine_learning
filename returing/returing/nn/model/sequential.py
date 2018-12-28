@@ -27,15 +27,6 @@ class Sequential(Model):
         else:
             self.model_list = [model]
 
-    """
-    def compile(self, loss_fn='mse',
-                activation='sigmoid',
-                optimizer='sgd',
-                stop_criterion=1e-3,
-                early_stopping=1000):
-                pass
-    """
-
     def fit(self, X, Y,
             batch_size=1,
             epochs=1,

@@ -31,13 +31,13 @@ class Dense(Model):
 
     def forward(self, *args):
         """
-            X: [n_samples, n_input]
-            Y_pred: [n_samples, n_output]
+        X: [n_samples, n_input]
+        Y_pred: [n_samples, n_output]
 
-            Y_pred = Activation()(matmul(X, W) + b)
+        Y_pred = Activation()(matmul(X, W) + b)
 
-            W: [n_input, n_output]
-            b: [1, n_output]
+        W: [n_input, n_output]
+        b: [1, n_output]
         """
 
         assert len(args) == 1
