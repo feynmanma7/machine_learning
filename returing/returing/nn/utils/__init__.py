@@ -15,3 +15,8 @@ def sigmoid(x):
 
 def sigmoid_grad(y):
     return y * (1 - y)
+
+
+def safe_read_dict(dictory, key, default=0):
+    return dictory[key] if key in dictory else default
+

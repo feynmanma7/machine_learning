@@ -9,6 +9,16 @@ from returing.nn.optimizer import sgd
 import numpy as np
 np.random.seed(20170430)
 
+"""
+Composition of atom operations.
+
+Input(Tensor)
+Output(Tensor) = self.forward(Input)
+
+For atom operation, implementation of backward is necessary, 
+while for model is not.  
+"""
+
 
 class Model(Operation):
 
@@ -88,8 +98,7 @@ class Model(Operation):
     def fit(self, X, Y,
             batch_size=1,
             epochs=1,
-            verbose=0
-            ):
+            verbose=0):
 
         assert isinstance(X, Tensor) or isinstance(X, list)
         assert isinstance(Y, Tensor) or isinstance(Y, list)
@@ -138,16 +147,5 @@ class Model(Operation):
         raise NotImplementedError
 
     def predict(self, X):
-        """
-        Use Current Weights.
-        """
-        #self.W = self.best_W
-        #self.b = self.best_b
+        return self.forward(X) # Y_pred = self.forward(X)
 
-        Y_pred = self.forward(X)
-        return Y_pred
-
-    """
-    def backward(self):
-        self.loss_tensor.backward()
-    """

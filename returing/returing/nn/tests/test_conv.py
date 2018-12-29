@@ -22,7 +22,11 @@ def test_conv2d():
     n_output_width = int((n_input_width - kernel_size + 2 * padding) / stride) + 1
     n_output_height = int((n_input_height - kernel_size + 2 * padding) / stride) + 1
 
-    X = np.random.randn(n_input_channel, n_input_width, n_input_height)
+    n_samples = 10
+    X = np.random.randn(n_samples,
+                        n_input_channel,
+                        n_input_width, n_input_height)
+
     Y_pred = conv.Conv2D()(X)
 
 
