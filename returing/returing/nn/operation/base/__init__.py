@@ -27,7 +27,13 @@ class Add(Operation):
         # May not have the same shape, use broadcast instead.
         # assert self.A.data.shape == self.B.data.shape
 
-        C = Tensor(self.A.data + self.B.data)
+        if not isinstance(self.A.data, np.ndarray):
+            C = Tensor(self.B.data)
+        elif not isinstance(self.B.data, np.ndarray):
+            C = Tensor(self.A.data)
+        else:
+            C = Tensor(self.A.data + self.B.data)
+
         C.name = self.name
         C.grad_fn = self
 
@@ -45,7 +51,15 @@ class Add(Operation):
 
         # assert self.A.data.shape == self.B.data.shape
 
-        grad_mat = np.ones(self.A.data.shape)
+        if isinstance(self.A.data, np.ndarray):
+            shape = self.A.data.shape
+        elif isinstance(self.B.data, np.ndarray):
+            shape = self.B.data.shape
+        else:
+            return
+
+        #grad_mat = np.ones(self.A.data.shape)
+        grad_mat = np.ones(shape)
 
         if self.A.requires_grad:
             if not isinstance(self.A.grad, np.ndarray):

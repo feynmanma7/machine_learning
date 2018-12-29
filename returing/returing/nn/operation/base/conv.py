@@ -91,7 +91,7 @@ class Conv2D(Operation):
         self.is_bias = safe_read_dict(kwargs, 'is_bias', False)
 
         # Initialization
-        
+
 
 
     def forward(self, *args):

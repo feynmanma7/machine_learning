@@ -108,9 +108,28 @@ def test_ElementWiseMul():
     assert np.array_equal(a.grad, a_grad)
     assert np.array_equal(b.grad, b_grad)
 
+
+def test_Add():
+
+    a = Tensor(requires_grad=True)
+
+    print(isinstance(a.data, np.ndarray))
+
+
+    b = Tensor()
+    #b = Tensor(np.array([1, 2, 3, 4]), requires_grad=True)
+    c = Add()(a, b)
+    c.print()
+    c.backward()
+    print(a.grad)
+    print(b.grad)
+
+
 if __name__ == '__main__':
     # test_Add_Subtract()
     # test_Matmul()
     # test_ReLU()
     # test_Sigmoid()
-    test_ElementWiseMul()
+    # test_ElementWiseMul()
+
+    test_Add()
