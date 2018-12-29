@@ -2,7 +2,7 @@ from returing.nn.operation import Operation
 from returing.nn.tensor import Tensor
 
 from returing.nn.operation.base import Sum, ElementWiseMul, Add
-from returing.nn.operation.base.padding import Padding2D
+from returing.nn.operation.base.padding_op import Padding2D
 from returing.nn.operation.base.sliding import Sliding2D
 
 from returing.nn.utils import safe_read_dict

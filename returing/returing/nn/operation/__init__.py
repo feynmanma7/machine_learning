@@ -2,6 +2,30 @@
 Operation is atom.
 Only support unary and binary operation.
 
+# ===== Atom Operation
+## === forward
+The forward function must be implemented.
+
++ Save input tensor for current operation.
+
++ Return a new tensor.
+
++ Point self as the grad_fn of return tensor.
+
++ Point the parent-child relationships.
+
+## === backward is must
+
+Update the grad of the input tensor(s) of current operation.
+
+The grad must have the same shape with the corresponding tensor(s).
+
+# ===== Composite Operation
+## forward
+The s
+
+
+
 # ====== Unary Operation
 ## === Math formula
 ### Sum: np.sum(), ndarray to scalar

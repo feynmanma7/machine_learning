@@ -11,8 +11,8 @@ class Add(Operation):
 
     def __init__(self, name=None):
         super(Add, self).__init__()
-        self.A = Tensor
-        self.B = Tensor
+        #self.A = Tensor
+        #self.B = Tensor
         self.op_name = 'add'
         self.name = name
 

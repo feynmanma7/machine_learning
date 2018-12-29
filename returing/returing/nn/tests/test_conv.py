@@ -1,7 +1,22 @@
-from returing.nn.operation.base import conv
+from returing.nn.tensor import Tensor
+from returing.nn.operation.base import conv, padding_op
 
 import numpy as np
 np.random.seed(20170430)
+
+
+def test_padding2d():
+
+    width = 2
+    height = 3
+    padding = 1
+    a = Tensor(np.random.randn(width, height), requires_grad=True)
+    a.print()
+    b = padding_op.Padding2D(padding=padding)(a)
+    b.print()
+
+    b.backward()
+    print(a.grad)
 
 
 def test_conv2d():
@@ -31,4 +46,5 @@ def test_conv2d():
 
 
 if __name__ == '__main__':
-    test_conv2d()
+    #test_conv2d()
+    test_padding2d()
