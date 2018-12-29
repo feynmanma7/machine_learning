@@ -5,14 +5,17 @@ import numpy as np
 np.random.seed(20170430)
 
 
-class ReLU(Operation):
-    # Unary operation
+class Conv2D(Operation):
+    """
+
+    """
+
     A = None
 
     def __init__(self, name=None):
-        super(ReLU, self).__init__()
+        super(Conv2D, self).__init__()
         self.A = Tensor
-        self.op_name = 'relu'
+        self.op_name = 'conv2d'
         self.name = name
 
     def forward(self, *args):
@@ -33,23 +36,6 @@ class ReLU(Operation):
         if self.A.requires_grad:
             C.requires_grad = True
 
-        self.A.parent = C
-        C.left_child = self.A
 
-        return C
-
-    def backward(self, C_grad=1):
-        if not self.A:
-            return
-
-        assert isinstance(self.A.data, np.ndarray)
-
-        # ReLU_grad = 1 if x > 0 else 0
-        grad_mat = 1 * (self.A.data > 0)
-        # grad_mat = np.ones(self.A.data.shape)
-
-        if self.A.requires_grad:
-            if not isinstance(self.A.grad, np.ndarray):
-                self.A.grad = grad_mat * C_grad
-            else:
-                self.A.grad += grad_mat * C_grad
+    def backward(self, *args, **kwargs):
+        pass

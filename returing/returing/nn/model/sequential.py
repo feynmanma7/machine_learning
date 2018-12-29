@@ -1,7 +1,7 @@
 from . import Model
 from returing.nn.tensor import Tensor
 from returing.nn.operation import Operation
-from returing.nn.operation.base import Matmul, Add
+from returing.nn.operation.base import MatMul, Add
 from returing.nn.utils.initialization import random_init_tensor
 
 import numpy as np

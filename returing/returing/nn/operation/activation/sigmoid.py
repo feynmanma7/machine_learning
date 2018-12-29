@@ -1,11 +1,12 @@
-from returing.nn.operation.activation import Activation
+from returing.nn.operation import Operation
 from returing.nn.tensor import Tensor
 from returing.nn.utils import sigmoid, sigmoid_grad
 
 import numpy as np
 np.random.seed(20170430)
 
-class Sigmoid(Activation):
+
+class Sigmoid(Operation):
     # Unary operation
     A = None
     C = None

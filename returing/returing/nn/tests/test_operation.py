@@ -36,20 +36,21 @@ def test_Matmul():
     b = Tensor(np.array([1, 2, 3, 2, 3, 4]).reshape((2, 3)),
                requires_grad=True, name='b')
 
-    c = Matmul('c')(a, b)
+    c = MatMul('c')(a, b)
     d = Sum('d')(c)
     d.print()
 
     d.backward()
 
-    a_grad = (np.array([6., 9.]) * 3).reshape((3, 2))
-    b_grad = (np.array([1., 1., 1.]) * 2).reshape((2, 3))
+    a_grad = (np.array([6., 9.] * 3)).reshape((3, 2))
+    b_grad = (np.array([1., 1., 1.] * 2)).reshape((2, 3))
 
     print(a.grad)
     print(b.grad)
 
     assert np.array_equal(a.grad, a_grad)
     assert np.array_equal(b.grad, b_grad)
+
 
 def test_ReLU():
     a = Tensor(np.array([1, -1, 2, -2, 3, -3, 4, -4]).reshape((2, 4)),
@@ -84,8 +85,32 @@ def test_Sigmoid():
     a_grad = np.array([0.25] * 6).reshape((2, 3))
     assert np.array_equal(a.grad, a_grad)
 
+
+def test_ElementWiseMul():
+    a = Tensor(np.array([1, -1, 1, 1, -1, 1]).reshape((3, 2)),
+               requires_grad=True, name='a')
+
+    b = Tensor(np.array([1, 2, 2, 3, 3, 4]).reshape((3, 2)),
+               requires_grad=True, name='b')
+
+    c = ElementWiseMul('c')(a, b)
+    d = Sum('d')(c)
+    d.print()
+
+    d.backward()
+
+    a_grad = np.array([[1., 2.], [2., 3.], [3., 4.]])
+    b_grad = np.array([[1., -1.], [1., 1.], [-1., 1.]])
+
+    print(a.grad)
+    print(b.grad)
+
+    assert np.array_equal(a.grad, a_grad)
+    assert np.array_equal(b.grad, b_grad)
+
 if __name__ == '__main__':
     # test_Add_Subtract()
     # test_Matmul()
     # test_ReLU()
-    test_Sigmoid()
+    # test_Sigmoid()
+    test_ElementWiseMul()

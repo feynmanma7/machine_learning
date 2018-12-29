@@ -1,6 +1,6 @@
 from . import Model
 from returing.nn.utils.initialization import random_init_tensor
-from returing.nn.operation.base import Matmul, Add
+from returing.nn.operation.base import MatMul, Add
 from returing.nn.tensor import Tensor
 import numpy as np
 np.random.seed(20170430)
@@ -45,7 +45,7 @@ class Dense(Model):
 
         X = args[0]
 
-        Y_pred = Matmul()(X, self.W)
+        Y_pred = MatMul()(X, self.W)
 
         if self.is_bias:
             Y_pred = Add()(Y_pred, self.b)

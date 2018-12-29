@@ -2,26 +2,13 @@ import numpy as np
 np.random.seed(20170430)
 
 
-class Node(object):
-
-    grad_fn = None
-    tensor = None
-
-    parent = None
-    left_child = None
-    right_child = None
-
-    def __init__(self):
-        super(Node, self).__init__()
-
-
 class Tensor(object):
 
     data = None
     name = None
     #is_leaf = None
     requires_grad = None
-    grad_fn = None
+    grad_fn = None # Important, gradient_function is an Operation!
     grad = None
 
     # Point to Tensor
@@ -50,7 +37,7 @@ class Tensor(object):
             return
 
         grad_out = 1
-        if self.grad:
+        if isinstance(self.grad, np.ndarray):
             grad_out = self.grad
 
         self.grad_fn.backward(grad_out)
@@ -60,13 +47,6 @@ class Tensor(object):
 
         if self.right_child:
             self.right_child.backward()
-
-        """
-        if self.left_child and self.left_child.grad_fn:
-            self.left_child.grad_fn.backward()
-        if self.right_child and self.right_child.grad_fn:
-            self.right_child.grad_fn.backward()
-        """
 
     def print(self):
         print(self.data)

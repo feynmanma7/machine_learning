@@ -3,7 +3,8 @@
 # Tree Methods
 
 + Project Address
-returing.returing.classifier.tree
+
+> returing.returing.classifier.tree
 
 Basic Tree-based Machine Learning Methods.
 
@@ -23,19 +24,19 @@ There're four core elements of this framework.
 
 The <b>Tensor</b> and <b>Operation</b> Part are the two Building Blocks of the computational graph which is actually a tensor-flow(operation) graph.
 
-# Tensor
+## Tensor
 Base building block.
 The object with data, including the Input data and data Obtained
 from some specific operation.
 
-# Operation
+## Operation
 The way to process the data,
 including forward and backward propagation.
 
-# Model(Operation)
+## Model(Operation)
 Abstract package of tensors and operations.
 
-# Optimizer(Tensor)
+## Optimizer(Tensor)
 The way to update parameters, let the project approximate our target
 as much as possible.
 
