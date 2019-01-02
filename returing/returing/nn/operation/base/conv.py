@@ -2,8 +2,8 @@ from returing.nn.operation import Operation
 from returing.nn.tensor import Tensor
 
 from returing.nn.operation.base import Sum, ElementWiseMul, Add
-from returing.nn.operation.base.padding_op import Padding2D
-from returing.nn.operation.base.sliding import Sliding2D
+from returing.nn.operation.base.pad import Padding2D
+from returing.nn.operation.base.slide import Sliding2D
 
 from returing.nn.utils import safe_read_dict
 
@@ -33,6 +33,7 @@ class CrossCorrelation2D(Operation):
         self.W = W # weights, [K, K]
 
     def set_weights(self, W):
+        # Weights, Kernels, Filters
         assert isinstance(W, Tensor)
         assert W.data.shape == (self.K, self.K)
 
@@ -43,6 +44,10 @@ class CrossCorrelation2D(Operation):
         # CrossCorrelation2D (Convolution on a 2-D array X, By a kernel W)
         ## Input: X [width, height], W [K, K]
         ## Output: Y [K, K]
+
+        padding_X = Padding2D(padding)(X)  [width + 2P, height + 2P]
+
+        Y[i, j] = Sliding2D(i, j, stride)(padding_X) [K, K]
         """
 
         assert len(args) == 1
@@ -56,17 +61,16 @@ class CrossCorrelation2D(Operation):
         for i in range(self.W.shape[0]):
             for j in range(self.W.shape[1]):
                 padding_X = Padding2D(self.padding)(X)
-                sub_X = Sliding2D(i, j, self.stride)(padding_X)
+                sub_X = Sliding2D(
+                    width_idx=i,
+                    height_idx=j,
+                    stride=self.stride,
+                    kernel_size=self.kernel_size)(padding_X)
 
                 Y_pred_data[i, j] = Sum()(ElementWiseMul(sub_X, self.W))
 
         Y_pred = Tensor(Y_pred_data)
         return Y_pred
-
-    """
-    def backward(self, *args, **kwargs):
-        pass
-    """
 
 
 class Conv2D(Operation):
