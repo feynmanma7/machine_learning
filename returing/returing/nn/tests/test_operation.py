@@ -3,6 +3,7 @@ np.random.seed(20170430)
 
 from returing.nn.operation.base import *
 from returing.nn.operation.activation import relu, sigmoid
+from returing.nn.utils import *
 
 
 # ==================TEST=======================
@@ -134,6 +135,37 @@ def test_Sum():
     b.backward()
     print(a.grad)
 
+def test_Get_Set_Sub_Tensor():
+    """
+    a = np.random.randn(2, 3, 4)
+    print(a)
+
+    b = np.arange(6).reshape((1, 2, 3))
+
+    set_sub_ndarray(a, b, ((0, 1), (1, 3), (1, 4)))
+    print('\n' * 2)
+    print('=' * 20)
+    print(a)
+    """
+
+    a = Tensor(np.random.randn(2, 3, 4), requires_grad=True)
+    coordinate_tuple = ((0, 1), (1, 3), (1, 4))  # shape(1, 2, 3)
+    b = Tensor(np.arange(6))
+    a.print()
+
+    c = SetSubTensor(coordinate_tuple = coordinate_tuple)(a, b)
+    c.print()
+
+    c.backward()
+    print(a.grad)
+
+    d = GetSubTensor(coordinate_tuple = coordinate_tuple)(a)
+    d.print()
+    d.backward()
+    print(a.grad)
+
+
+
 
 if __name__ == '__main__':
     # test_Add_Subtract()
@@ -144,4 +176,5 @@ if __name__ == '__main__':
 
     # test_Add()
 
-    test_Sum()
+    #test_Sum()
+    test_Get_Set_Sub_Tensor()

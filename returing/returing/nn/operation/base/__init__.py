@@ -1,5 +1,8 @@
 from returing.nn.tensor import Tensor
 from returing.nn.operation import Operation
+
+from returing.nn.utils import set_sub_ndarray, get_sub_ndarray, get_shape_by_coord_tuple
+
 import numpy as np
 np.random.seed(20170430)
 
@@ -316,7 +319,106 @@ class ElementWiseMul(Operation):
                 self.B.grad += self.A.data
 
 
+class SetSubTensor(Operation):
+    # Set And Get SubTensor is a subset of Add Operation.
 
+    def __init__(self, coordinate_tuple):
+        super(SetSubTensor, self).__init__()
+        self.coordinate_tuple = coordinate_tuple
+        self.shape = get_shape_by_coord_tuple(self.coordinate_tuple)
+
+    def forward(self, *args):
+        assert len(args) == 2
+        assert isinstance(args[0], Tensor)
+        assert isinstance(args[1], Tensor)
+
+        self.A = args[0]
+        B = args[1]
+
+        C_data = self.A.data
+        set_sub_ndarray(C_data, B.data, self.coordinate_tuple)
+
+        C = Tensor()
+        C.data = C_data
+
+        C.left_child = self.A
+        # C.right_child = self.B
+
+        C.grad_fn = self
+
+        self.A.parent = C
+        #self.B.parent = C
+
+        if self.A.requires_grad:
+            C.requires_grad = True
+
+        return C
+
+    def backward(self, C_grad=None):
+        if not self.A.requires_grad:
+            return
+
+        if not isinstance(self.A.data, np.ndarray):
+            return
+
+        if not isinstance(C_grad, np.ndarray):
+            C_grad = np.ones(self.shape)
+
+        if not isinstance(self.A.grad, np.ndarray):
+            self.A.grad = np.zeros(self.A.data.shape)
+            set_sub_ndarray(self.A.grad, C_grad, self.coordinate_tuple, is_add=False)
+        else:
+            assert self.A.grad.shape == self.A.data.shape
+            set_sub_ndarray(self.A.grad, C_grad, self.coordinate_tuple, is_add=True)
+
+
+class GetSubTensor(Operation):
+
+    def __init__(self, coordinate_tuple):
+        super(GetSubTensor, self).__init__()
+        self.coordinate_tuple = coordinate_tuple
+        self.shape = get_shape_by_coord_tuple(self.coordinate_tuple)
+
+    def forward(self, *args):
+        assert len(args) == 1
+        assert isinstance(args[0], Tensor)
+
+        self.A = args[0]
+
+        C_data = get_sub_ndarray(self.A.data, self.coordinate_tuple)
+
+        C = Tensor()
+        C.data = C_data
+
+        C.left_child = self.A
+        # C.right_child = self.B
+
+        C.grad_fn = self
+
+        self.A.parent = C
+        #self.B.parent = C
+
+        if self.A.requires_grad:
+            C.requires_grad = True
+
+        return C
+
+    def backward(self, C_grad=None):
+        if not self.A.requires_grad:
+            return
+
+        if not isinstance(self.A.data, np.ndarray):
+            return
+
+        if not isinstance(C_grad, np.ndarray):
+            C_grad = np.ones(self.shape)
+
+        if not isinstance(self.A.grad, np.ndarray):
+            self.A.grad = np.zeros(self.A.data.shape)
+            set_sub_ndarray(self.A.grad, C_grad, self.coordinate_tuple, is_add=False)
+        else:
+            assert self.A.grad.shape == self.A.data.shape
+            set_sub_ndarray(self.A.grad, C_grad, self.coordinate_tuple, is_add=True)
 
 
 
