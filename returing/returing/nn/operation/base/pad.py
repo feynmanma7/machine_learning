@@ -59,7 +59,9 @@ class Padding2D(Operation):
 
     def backward(self, padded_grad_out=None):
         """
-        padded_grad_out: [width+2P, height+2P], np.ndarray
+        Note: If grad_out is not empty, it has the same shape with Y_pred.
+
+        padded_grad_out: [n_samples, width+2P, height+2P], np.ndarray
         grad_out: [width, height]
 
         X.grad: [n_samples, width, height], np.ndarray
@@ -74,18 +76,30 @@ class Padding2D(Operation):
         # For padding operation, the gradient is 1.
         if not isinstance(padded_grad_out, np.ndarray):
             # X_data: [n_samples, width, height]
-            # grad_out: [width, height]
-            grad_out = 1 * self.X.data.shape[1:]
+            # grad_out: [n_samples, width, height]
+            grad_out = np.ones(self.X.data.shape)
         else:
+            # assert padded_grad_out.shape == Y_pred.shape
             P = self.padding
-            grad_out = padded_grad_out[P:-P, P:-P]
+            grad_out = padded_grad_out[:, P:-P, P:-P]
 
         # === !!! Note: Rely on the <b>Right</b>-align Broadcast of numpy.
         n_samples = self.X.data[0]
 
+        # cur_grad (For Current Operation)
+        # grad_out (Gradient from backwards), maybe empty.
+        # If not total grad
+        #   total_grad = cur_grad * grad_out
+        # Else total_grad += cur_grad * grad_out
+
+        cur_grad = np.ones(self.X.data.shape)
+
+        # cur_grad: [n_samples, width, height]
+        # grad_out: [n_samples, width, height]
+        cur_grad = cur_grad * grad_out
+
         if isinstance(self.X.grad, np.ndarray):
             # In numpy `*` is element-wise multiply
-            self.X.grad += grad_out
+            self.X.grad += cur_grad
         else:
-            self.X.grad = 0 * self.X.data
-            self.X.grad += grad_out
+            self.X.grad = cur_grad
