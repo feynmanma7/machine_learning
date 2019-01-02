@@ -23,27 +23,31 @@ class Padding2D(Operation):
     def forward(self, *args):
         """
         # Input
-        X: [width, height]
-        Y_pred: [width + 2P, height + 2P]
+        X: [n_samples, width, height]
+
+        # Output
+        Y_pred: [n_samples, width + 2P, height + 2P]
         """
 
         assert len(args) == 1
         assert isinstance(args[0], Tensor)
-        X = args[0]
+        assert isinstance(args[0].data, np.ndarray)
+        assert len(args[0].data.shape) == 3
+        n_samples, width, height = args[0].data.shape
+        self.n_samples = n_samples
 
+        X = args[0]
         self.X = X  # 1.Save input tensors for current operation
 
-        assert isinstance(X.data, np.ndarray)
-
-        width, height = X.data.shape
         P = self.padding
 
         # !!! Do Zero Padding Here
-        Y_pred_data = np.zeros((width + 2 * P,
-                               height + 2 * P))
+        Y_pred_data = np.zeros((self.n_samples,
+                                width + 2 * P,
+                                height + 2 * P))
 
         # Copy X.data into Y, leave paddings in the around.
-        Y_pred_data[P:-P, P:-P] = X.data
+        Y_pred_data[:, P:-P, P:-P] = X.data
 
         Y_pred = Tensor(Y_pred_data)
         Y_pred.grad_fn = self # 3. Set grad_fn for current operation
@@ -53,27 +57,35 @@ class Padding2D(Operation):
 
         return Y_pred # 2. Return new Tensor
 
-    def backward(self, grad_out=None):
+    def backward(self, padded_grad_out=None):
         """
-        grad_out: [width+2P, height+2P], np.ndarray
+        padded_grad_out: [width+2P, height+2P], np.ndarray
+        grad_out: [width, height]
 
-        X.grad: [width, height], np.ndarray
+        X.grad: [n_samples, width, height], np.ndarray
         """
         assert isinstance(self.X, Tensor)
+
+        if not self.X.requires_grad:
+            return
+
         assert isinstance(self.X.data, np.ndarray)
 
         # For padding operation, the gradient is 1.
-        grad_mat = np.ones(self.X.data.shape) #[width, height]
-
-        if not isinstance(grad_out, np.ndarray):
-            x_grad_out = np.ones(self.X.data.shape)
+        if not isinstance(padded_grad_out, np.ndarray):
+            # X_data: [n_samples, width, height]
+            # grad_out: [width, height]
+            grad_out = 1 * self.X.data.shape[1:]
         else:
             P = self.padding
-            x_grad_out = grad_out[P:-P, P:-P]
+            grad_out = padded_grad_out[P:-P, P:-P]
 
-        if self.X.requires_grad:
-            if isinstance(self.X.grad, np.ndarray):
-                # In numpy `*` is element-wise multiply
-                self.X.grad += grad_mat * x_grad_out
-            else:
-                self.X.grad = grad_mat * x_grad_out
+        # === !!! Note: Rely on the <b>Right</b>-align Broadcast of numpy.
+        n_samples = self.X.data[0]
+
+        if isinstance(self.X.grad, np.ndarray):
+            # In numpy `*` is element-wise multiply
+            self.X.grad += grad_out
+        else:
+            self.X.grad = 0 * self.X.data
+            self.X.grad += grad_out

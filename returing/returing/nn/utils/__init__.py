@@ -55,6 +55,8 @@ def set_sub_ndarray(A, B, coordinate_tuple, is_add=False):
         shape.append(coordinate[1] - coordinate[0])
 
     # assert B.size == coordinate_tuple.size(To Be Computed)
+
+    # Note: B.data must be reshaped before used.
     if is_add:
         # Add to the raw data
         A[tuple(slice_tuple)] += B.reshape(tuple(shape))
