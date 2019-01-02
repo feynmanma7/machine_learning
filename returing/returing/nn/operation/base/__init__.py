@@ -421,4 +421,64 @@ class GetSubTensor(Operation):
             set_sub_ndarray(self.A.grad, C_grad, self.coordinate_tuple, is_add=True)
 
 
+class Reshape(Operation):
+
+    def __init__(self, target_shape=(1, )):
+        super(Reshape, self).__init__()
+        self.target_shape = target_shape
+
+    def forward(self, *args, **kwargs):
+        assert len(args) == 1
+        assert isinstance(args[0], Tensor)
+        assert isinstance(args[0].data, np.ndarray)
+
+        self.A = args[0]
+
+        self.shape = self.A.data.shape
+
+        C_data = self.A.data.reshape(self.target_shape)
+
+        C = Tensor()
+        C.data = C_data
+
+        C.left_child = self.A
+        # C.right_child = self.B
+
+        C.grad_fn = self
+
+        self.A.parent = C
+        #self.B.parent = C
+
+        if self.A.requires_grad:
+            C.requires_grad = True
+
+        return C
+
+    def backward(self, C_grad=None):
+        if not self.A.requires_grad:
+            return
+
+        if not isinstance(self.A.data, np.ndarray):
+            return
+
+        if not isinstance(C_grad, np.ndarray):
+            grad_out = np.ones(self.shape)
+        else:
+            grad_out = C_grad.reshape(self.shape)
+
+        """
+        C_grad: target_shape
+        
+        A.grad: shape
+        """
+
+        cur_grad = np.ones(self.A.data)
+        cur_grad *= grad_out
+
+        if not isinstance(self.A.grad, np.ndarray):
+            self.A.grad = cur_grad
+        else:
+            self.A.grad += cur_grad
+
+
 
