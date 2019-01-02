@@ -134,11 +134,13 @@ class Sum(Operation):
     # Unary operation
     A = None
 
-    def __init__(self, name=None):
+    def __init__(self, axis=None, name=None):
         super(Sum, self).__init__()
         self.A = Tensor
         self.op_name = 'sum'
         self.name = name
+
+        self.axis = axis
 
     def forward(self, *args):
 
@@ -147,7 +149,7 @@ class Sum(Operation):
 
         self.A = args[0]
 
-        C = Tensor(np.sum(self.A.data))
+        C = Tensor(np.sum(self.A.data, axis=self.axis))
 
         C.name = self.name
         C.grad_fn = self
@@ -163,8 +165,10 @@ class Sum(Operation):
         return C
 
     def backward(self, C_grad=1):
+        # Add attribute `axis` to the forward function,
+        # for backward, the gradient keeps the same with the input Tensor  `A`.
 
-        if self.A == None:
+        if not self.A:
             return
 
         assert isinstance(self.A.data, np.ndarray)

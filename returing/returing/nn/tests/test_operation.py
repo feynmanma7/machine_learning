@@ -124,6 +124,16 @@ def test_Add():
     print(a.grad)
     print(b.grad)
 
+def test_Sum():
+
+    a = Tensor(np.random.randn(2, 3, 4), requires_grad=True)
+
+    b = Sum(axis=(1, 2))(a)
+    b.print()
+
+    b.backward()
+    print(a.grad)
+
 
 if __name__ == '__main__':
     # test_Add_Subtract()
@@ -132,4 +142,6 @@ if __name__ == '__main__':
     # test_Sigmoid()
     # test_ElementWiseMul()
 
-    test_Add()
+    # test_Add()
+
+    test_Sum()
