@@ -464,19 +464,23 @@ class SetSubTensor(Operation):
 
         # The gradient of Operation `SetSubTensor` is 1.
 
+        # C_grad.shape == self.A.data.shape
+
         if self.A.requires_grad:
             assert isinstance(self.A.data, np.ndarray)
             if not isinstance(C_grad, np.ndarray):
-                A_cur_grad = np.ones(self.shape) # * cur_grad, cur_grad = ones
+                A_cur_grad = np.ones(self.A.data.shape) # * cur_grad, cur_grad = ones
             else:
                 A_cur_grad = C_grad
 
             if not isinstance(self.A.grad, np.ndarray):
                 self.A.grad = np.zeros(self.A.data.shape)
-                set_sub_ndarray(self.A.grad, A_cur_grad, self.coordinate_tuple, is_add=False)
+                self.A.grad = A_cur_grad
+                #set_sub_ndarray(self.A.grad, A_cur_grad, self.coordinate_tuple, is_add=False)
             else:
                 assert self.A.grad.shape == self.A.data.shape
-                set_sub_ndarray(self.A.grad, A_cur_grad, self.coordinate_tuple, is_add=True)
+                self.A.grad += A_cur_grad
+                #set_sub_ndarray(self.A.grad, A_cur_grad, self.coordinate_tuple, is_add=True)
 
         if self.B.requires_grad:
             assert isinstance(self.B.data, np.ndarray)

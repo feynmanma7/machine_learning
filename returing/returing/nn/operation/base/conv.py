@@ -73,12 +73,12 @@ class ConvCore2D(Operation):
         # Y_pred: [n_samples, output_width, output_height]
         Y_pred = Tensor(np.zeros((n_samples, output_width, output_height)))
 
+        # X: [n_samples, input_width, input_height]
+        # padding_X: [n_samples, input_width+2P, input_weight+2P]
+        padding_X = Padding2D(padding=self.padding)(X)
+
         for i in range(output_width):
             for j in range(output_height):
-
-                # X: [n_samples, input_width, input_height]
-                # padding_X: [n_samples, input_width+2P, input_weight+2P]
-                padding_X = Padding2D(self.padding)(X)
 
                 # sub_X: [n_samples, K, K]
                 sub_X = Sliding2D(
@@ -117,11 +117,7 @@ class Conv2D(Operation):
         self.n_input_channel = safe_read_dict(kwargs, 'n_input_channel', 1)
         self.input_width = safe_read_dict(kwargs, 'input_width', 1)
         self.input_height = safe_read_dict(kwargs, 'input_height', 1)
-
         self.n_output_channel = safe_read_dict(kwargs, 'n_output_channel', 1)
-        #self.output_width = safe_read_dict(kwargs, 'output_width', 1)
-        #self.output_height = safe_read_dict(kwargs, 'output_height', 1)
-
         self.kernel_size = safe_read_dict(kwargs, 'kernel_size', 1)
         self.stride = safe_read_dict(kwargs, 'stride', 1)
         self.padding = safe_read_dict(kwargs, 'padding', 0)
