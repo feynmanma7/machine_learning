@@ -9,7 +9,7 @@ np.random.seed(20170430)
 class Padding2D(Operation):
     # Atom Unary Operation
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         super(Padding2D, self).__init__()
 
         # Assume zero-padding in the default,
@@ -42,15 +42,21 @@ class Padding2D(Operation):
         P = self.padding
 
         # !!! Do Zero Padding Here
+
         Y_pred_data = np.zeros((self.n_samples,
                                 width + 2 * P,
                                 height + 2 * P))
 
         # Copy X.data into Y, leave paddings in the around.
-        Y_pred_data[:, P:-P, P:-P] = X.data
+        if P == 0:
+            Y_pred_data = X.data
+        else:
+            Y_pred_data[:, P:-P, P:-P] = X.data
 
         Y_pred = Tensor(Y_pred_data)
-        Y_pred.grad_fn = self # 3. Set grad_fn for current operation
+        Y_pred.grad_fn = self # 3. Set grad_fn & requires_grad for current operation
+        if self.X.requires_grad:
+            Y_pred.requires_grad = True
 
         Y_pred.left_child = X # 4. Set parent-child relationships.
         X.parent = Y_pred
@@ -81,7 +87,10 @@ class Padding2D(Operation):
         else:
             # assert padded_grad_out.shape == Y_pred.shape
             P = self.padding
-            grad_out = padded_grad_out[:, P:-P, P:-P]
+            if P == 0:
+                grad_out = padded_grad_out
+            else:
+                grad_out = padded_grad_out[:, P:-P, P:-P]
 
         # === !!! Note: Rely on the <b>Right</b>-align Broadcast of numpy.
         n_samples = self.X.data[0]

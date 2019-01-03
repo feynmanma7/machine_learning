@@ -8,10 +8,6 @@ np.random.seed(20170430)
 
 
 class Add(Operation):
-
-    A = None
-    B = None
-
     def __init__(self, name=None):
         super(Add, self).__init__()
         #self.A = Tensor
@@ -176,13 +172,20 @@ class Sum(Operation):
 
         assert isinstance(self.A.data, np.ndarray)
 
-        grad_mat = np.ones(self.A.data.shape)
+        cur_grad = np.ones(self.A.data.shape)
+        if isinstance(C_grad, np.ndarray):
+            # C_grad.shape may not be the same with cur_grad.shape
+            # If C_grad is the same shape with Y_pred, which is obtained by np.sum()
+            # Numpy will handle here.
+            cur_grad *= C_grad
 
         if self.A.requires_grad:
             if not isinstance(self.A.grad, np.ndarray):
-                self.A.grad = grad_mat * C_grad
+                #self.A.grad = cur_grad * C_grad
+                self.A.grad = cur_grad
             else:
-                self.A.grad += grad_mat * C_grad
+                #self.A.grad += cur_grad * C_grad
+                self.A.grad += cur_grad
 
 
 class MatMul(Operation):
@@ -270,10 +273,6 @@ class ElementWiseMul(Operation):
     grad_B (C) = A
 
     """
-
-    A = None # [m, n]
-    B = None # [m, n]
-
     def __init__(self, name=None):
         super(ElementWiseMul, self).__init__()
         self.op_name = 'element_wise_mul'
@@ -307,16 +306,122 @@ class ElementWiseMul(Operation):
         # assert self.A.data.shape == self.B.data.shape
 
         if self.A.requires_grad:
+
+            A_cur_grad = self.B.data
+
+            if isinstance(C_grad, np.ndarray):
+                # C_grad.shape == A_cur_grad.shape
+                A_cur_grad *= C_grad
+
             if not isinstance(self.A.grad, np.ndarray):
-                self.A.grad = self.B.data
+                #self.A.grad = self.B.data
+                self.A.grad = A_cur_grad
             else:
-                self.A.grad += self.B.data
+                #self.A.grad += self.B.data
+                self.A.grad += A_cur_grad
 
         if self.B.requires_grad:
+
+            B_cur_grad = self.A.data
+
+            if isinstance(C_grad, np.ndarray):
+                B_cur_grad *= C_grad
+
             if not isinstance(self.B.grad, np.ndarray):
-                self.B.grad = self.A.data
+                #self.B.grad = self.A.data
+                self.B.grad = B_cur_grad
             else:
-                self.B.grad += self.A.data
+                #self.B.grad += self.A.data
+                self.B.grad += B_cur_grad
+
+
+class BatchElementWiseMul(Operation):
+    """
+    Assume A is the batch samples.
+    # Input
+    A: [n_samples, m, n]
+    B: [m, n]
+
+    + Output:
+    C: [n_samples, m, n]
+    C = A * B, Use the `Broadcast` mechanism of numpy.
+
+    C.grad: [n_samples, m, n]
+
+    grad_A (C) = [n_samples, B]
+    grad_B (C) = A / n_samples --> [m, n]
+    """
+
+    def __init__(self, name=None):
+        super(BatchElementWiseMul, self).__init__()
+        self.op_name = 'batch_element_wise_mul'
+        self.name = name
+
+    def forward(self, *args):
+        assert len(args) == 2
+        assert isinstance(args[0], Tensor)
+        assert isinstance(args[1], Tensor)
+
+        self.A = args[0]
+        self.B = args[1]
+
+        # Currrently, A is the batch samples
+        assert self.A.data.shape[1:] == self.B.data.shape
+
+        C = Tensor(self.A.data * self.B.data) # In numpy, * means element-wise multiply
+        C.name = self.name
+        C.grad_fn = self
+
+        if self.A.requires_grad or self.B.requires_grad:
+            C.requires_grad = True
+
+        self.A.parent = C
+        self.B.parent = C
+        C.left_child = self.A
+        C.right_child = self.B
+
+        return C
+
+    def backward(self, C_grad=None):
+        # assert self.A.data.shape == self.B.data.shape
+
+        if self.A.requires_grad:
+
+            # B.data [m, n]
+            # A_cur_data [n_samples, m, n]
+            n_samples = self.A.data.shape[0]
+            A_cur_grad = np.repeat(self.B.data, n_samples).reshape(self.A.data.shape)
+
+            if isinstance(C_grad, np.ndarray):
+                # C_grad.shape == A_cur_grad.shape
+                A_cur_grad *= C_grad
+
+            if not isinstance(self.A.grad, np.ndarray):
+                #self.A.grad = self.B.data
+                self.A.grad = A_cur_grad
+            else:
+                #self.A.grad += self.B.data
+                self.A.grad += A_cur_grad
+
+        if self.B.requires_grad:
+
+            # A.data: [n_samples, m, n]
+            # B_cur_grad: [m, n]
+            n_samples = self.A.data.shape[0]
+            assert n_samples > 0
+
+            B_cur_grad = self.A.data
+
+            if isinstance(C_grad, np.ndarray):
+                B_cur_grad *= C_grad
+
+            # From [n_samples, m, n] to [m, n]
+            # !!! Use numpy.mean( ,axis=0)
+            B_cur_grad = np.mean(B_cur_grad, axis=0)
+            if not isinstance(self.B.grad, np.ndarray):
+                self.B.grad = B_cur_grad
+            else:
+                self.B.grad += B_cur_grad
 
 
 class SetSubTensor(Operation):
@@ -333,43 +438,61 @@ class SetSubTensor(Operation):
         assert isinstance(args[1], Tensor)
 
         self.A = args[0]
-        B = args[1]
+        self.B = args[1]
 
         C_data = self.A.data
-        set_sub_ndarray(C_data, B.data, self.coordinate_tuple)
+        set_sub_ndarray(C_data, self.B.data, self.coordinate_tuple)
 
-        C = Tensor()
-        C.data = C_data
+        C = Tensor(C_data)
 
         C.left_child = self.A
-        # C.right_child = self.B
+        C.right_child = self.B
 
         C.grad_fn = self
 
         self.A.parent = C
-        #self.B.parent = C
+        self.B.parent = C
 
-        if self.A.requires_grad:
+        if self.A.requires_grad or self.B.requires_grad:
             C.requires_grad = True
 
         return C
 
     def backward(self, C_grad=None):
-        if not self.A.requires_grad:
-            return
+        #if not self.A.requires_grad:
+        #   return
 
-        if not isinstance(self.A.data, np.ndarray):
-            return
+        # The gradient of Operation `SetSubTensor` is 1.
 
-        if not isinstance(C_grad, np.ndarray):
-            C_grad = np.ones(self.shape)
+        if self.A.requires_grad:
+            assert isinstance(self.A.data, np.ndarray)
+            if not isinstance(C_grad, np.ndarray):
+                A_cur_grad = np.ones(self.shape) # * cur_grad, cur_grad = ones
+            else:
+                A_cur_grad = C_grad
 
-        if not isinstance(self.A.grad, np.ndarray):
-            self.A.grad = np.zeros(self.A.data.shape)
-            set_sub_ndarray(self.A.grad, C_grad, self.coordinate_tuple, is_add=False)
-        else:
-            assert self.A.grad.shape == self.A.data.shape
-            set_sub_ndarray(self.A.grad, C_grad, self.coordinate_tuple, is_add=True)
+            if not isinstance(self.A.grad, np.ndarray):
+                self.A.grad = np.zeros(self.A.data.shape)
+                set_sub_ndarray(self.A.grad, A_cur_grad, self.coordinate_tuple, is_add=False)
+            else:
+                assert self.A.grad.shape == self.A.data.shape
+                set_sub_ndarray(self.A.grad, A_cur_grad, self.coordinate_tuple, is_add=True)
+
+        if self.B.requires_grad:
+            assert isinstance(self.B.data, np.ndarray)
+
+            if not isinstance(C_grad, np.ndarray):
+                B_cur_grad = np.ones(self.B.data.shape) # * cur_grad, cur_grad = ones
+            else:
+                B_cur_grad = get_sub_ndarray(C_grad, self.coordinate_tuple)
+
+            if not isinstance(self.B.grad, np.ndarray):
+                self.B.grad = np.zeros(self.B.data.shape)
+                self.B.grad = B_cur_grad
+            else:
+                self.B.grad += B_cur_grad
+
+
 
 
 class GetSubTensor(Operation):
@@ -472,7 +595,7 @@ class Reshape(Operation):
         A.grad: shape
         """
 
-        cur_grad = np.ones(self.A.data)
+        cur_grad = np.ones(self.A.data.shape)
         cur_grad *= grad_out
 
         if not isinstance(self.A.grad, np.ndarray):

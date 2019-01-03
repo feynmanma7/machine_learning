@@ -49,7 +49,9 @@ class Sliding2D(Operation):
                       self.height_idx * self.stride + self.kernel_size]
 
         Y_pred = Tensor(Y_pred_data)
-        Y_pred.grad_fn = self # 3. Set grad_fn for current operation
+        Y_pred.grad_fn = self # 3. Set grad_fn & requires_grad for current operation
+        if self.X.requires_grad:
+            Y_pred.requires_grad = True
 
         Y_pred.left_child = X # 4. Set parent-child relationships.
         X.parent = Y_pred

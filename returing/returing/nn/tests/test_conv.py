@@ -13,10 +13,12 @@ def test_sliding2d():
 
     Output: A sliding Tensor  [K, K], K = kernel_size
     """
-    width = 5
-    height = 6
 
-    a = Tensor(np.random.randn(width, height), requires_grad=True)
+    n_samples = 2
+    width = 4
+    height = 5
+
+    a = Tensor(np.random.randn(n_samples, width, height), requires_grad=True)
     a.print()
 
     kernel_size = 2 # Symmetric Squared
@@ -29,17 +31,18 @@ def test_sliding2d():
                         height_idx=height_idx,
                         kernel_size=kernel_size,
                         stride=stride)(a)
-    #b.print()
+    b.print()
     b.backward()
     print(a.grad)
 
 
 def test_padding2d():
 
+    n_samples = 4
     width = 2
     height = 3
 
-    a = Tensor(np.random.randn(width, height), requires_grad=True)
+    a = Tensor(np.random.randn(n_samples, width, height), requires_grad=True)
     a.print()
 
     padding = 1
@@ -53,30 +56,36 @@ def test_padding2d():
 def test_conv2d():
 
     # input
-    n_input_channel = 3
-    n_input_width = 28
-    n_input_height = 28
+    n_input_channel = 1
+    input_width = 5
+    input_height = 5
 
 
     # filters
-    n_output_channel = 5 # n_filter
+    n_output_channel = 1 # n_filter
     kernel_size = 5
-    stride = 2
-    padding = 1
+    stride = 1
+    padding = 0
 
-    # output: n_output = (N - K + 2P) / S + 1
-    n_output_width = int((n_input_width - kernel_size + 2 * padding) / stride) + 1
-    n_output_height = int((n_input_height - kernel_size + 2 * padding) / stride) + 1
-
-    n_samples = 10
-    X = np.random.randn(n_samples,
+    n_samples = 1
+    X = Tensor(np.random.randn(n_samples,
                         n_input_channel,
-                        n_input_width, n_input_height)
+                        input_width, input_height), requires_grad=True)
 
-    Y_pred = conv.Conv2D()(X)
+    Y_pred = conv.Conv2D(n_input_channel=n_input_channel,
+                         input_width=input_width,
+                         input_height=input_height,
+                         output_channel=n_output_channel,
+                         kernel_size=kernel_size,
+                         stride=stride,
+                         padding=padding)(X)
+    Y_pred.print()
+
+    Y_pred.backward()
+    print(X.grad)
 
 
 if __name__ == '__main__':
-    #test_conv2d()
+    test_conv2d()
     #test_padding2d()
-    test_sliding2d()
+    #test_sliding2d()

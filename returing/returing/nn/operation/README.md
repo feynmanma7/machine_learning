@@ -12,11 +12,12 @@ There are current four elements in the checklist.
 
 + Save input tensor for current operation.
 
-+ Return a new tensor.
-
-+ Point self as the grad_fn of return tensor.
++ Point self as the grad_fn of return tensor, 
+set the `requires_grad` attribute according to the input tensor.
 
 + Point the parent-child relationships.
+
++ Return a new tensor.
 
 ### Backward
 The backward function <b>must</b> be implemented. 

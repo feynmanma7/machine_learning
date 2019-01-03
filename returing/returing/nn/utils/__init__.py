@@ -42,7 +42,9 @@ def set_sub_ndarray(A, B, coordinate_tuple, is_add=False):
             coord_i: 2D-ndarray, [start_idx, end_idx]
             
     # Output:
-        A Sub-ndarray of A.
+        A: ndarray
+            Embed B to A.
+            Return A 
     """
     shape = []
     slice_tuple = []
