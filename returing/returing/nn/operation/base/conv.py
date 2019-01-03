@@ -2,7 +2,7 @@ from returing.nn.operation import Operation
 from returing.nn.tensor import Tensor
 
 from returing.nn.operation.base import Sum, BatchElementWiseMul, Add, \
-    GetSubTensor, SetSubTensor, Reshape
+    GetSubTensor, SetSubTensor, Reshape, Repeat
 from returing.nn.operation.base.pad import Padding2D
 from returing.nn.operation.base.slide import Sliding2D
 
@@ -19,15 +19,25 @@ class ConvCore2D(Operation):
         super(ConvCore2D, self).__init__()
         self.op_name = 'cross_correlation_2d'
         #self.name = name
-        self.kwargs = kwargs['kwargs']
+        #self.kwargs = kwargs['kwargs']
 
-        self.input_width = safe_read_dict(self.kwargs, 'input_width', 1)
-        self.input_height = safe_read_dict(self.kwargs, 'input_height', 1)
-        self.kernel_size = safe_read_dict(self.kwargs, 'kernel_size', 1)
-        self.stride = safe_read_dict(self.kwargs, 'stride', 1)
-        self.padding = safe_read_dict(self.kwargs, 'padding', 0)
+        """
+        self.input_width = safe_read_dict(self.kwargs, 'input_width', -1)
+        self.input_height = safe_read_dict(self.kwargs, 'input_height', -1)
+        self.kernel_size = safe_read_dict(self.kwargs, 'kernel_size', -1)
+        self.stride = safe_read_dict(self.kwargs, 'stride', -1)
+        self.padding = safe_read_dict(self.kwargs, 'padding', -1)
 
         self.W = safe_read_dict(self.kwargs, 'W', None) # weights, [K, K]
+        """
+
+        self.input_width = safe_read_dict(kwargs, 'input_width', -1)
+        self.input_height = safe_read_dict(kwargs, 'input_height', -1)
+        self.kernel_size = safe_read_dict(kwargs, 'kernel_size', -1)
+        self.stride = safe_read_dict(kwargs, 'stride', -1)
+        self.padding = safe_read_dict(kwargs, 'padding', -1)
+
+        self.W = safe_read_dict(kwargs, 'W', None)  # weights, [K, K]
 
 
     def set_weights(self, W):
@@ -77,6 +87,10 @@ class ConvCore2D(Operation):
         # padding_X: [n_samples, input_width+2P, input_weight+2P]
         padding_X = Padding2D(padding=self.padding)(X)
 
+        assert padding_X.data.shape == (n_samples,
+                                        self.input_width + 2 * self.padding,
+                                        self.input_height + 2 * self.padding)
+
         for i in range(output_width):
             for j in range(output_height):
 
@@ -87,22 +101,30 @@ class ConvCore2D(Operation):
                     stride=self.stride,
                     kernel_size=self.kernel_size)(padding_X)
 
+                assert sub_X.data.shape == (n_samples, self.kernel_size, self.kernel_size)
+
                 # sub_X: [n_samples, K, K]
                 # W: [K, K]
                 # Y_pred_ij: [n_samples, K, K]
                 # Rely on Right-align Broadcast of numpy in `ElementWiseMul`.
                 Y_pred_ij = BatchElementWiseMul()(sub_X, self.W)
 
-                # Y_pred_ij: [n_samples, 1], actually is `(n_samples, )` of np.sum().
-                # Must be reshaped before used !!!
-                Y_pred_ij = Sum(axis=(1, 2))(Y_pred_ij)
+                assert Y_pred_ij.data.shape == (n_samples, self.kernel_size, self.kernel_size)
+
+                # Y_pred_ij: [n_samples, 1, 1]
+                target_shape = (n_samples, 1, 1)
+                Y_pred_ij = Sum(axis=(1, 2), target_shape=target_shape)(Y_pred_ij)
+
+                assert Y_pred_ij.data.shape == (n_samples, 1, 1)
 
                 # Y_pred: [n_samples, output_width, output_height]
-                # Y_pred_ij: (n_samples, ) Reshape To [n_samples, 1]
+                # Y_pred_ij: [n_samples, 1, 1]
                 coord_tuple = ((0, n_samples),
                                (i, i+1),
                                (j, j+1))
                 Y_pred = SetSubTensor(coord_tuple)(Y_pred, Y_pred_ij)
+
+                assert Y_pred.data.shape == (n_samples, output_width, output_height)
 
         return Y_pred
 
@@ -112,15 +134,15 @@ class Conv2D(Operation):
         super(Conv2D, self).__init__()
         self.op_name = 'conv2d'
         self.name = None
-        self.kwargs = kwargs
+        #self.kwargs = kwargs
 
-        self.n_input_channel = safe_read_dict(kwargs, 'n_input_channel', 1)
-        self.input_width = safe_read_dict(kwargs, 'input_width', 1)
-        self.input_height = safe_read_dict(kwargs, 'input_height', 1)
-        self.n_output_channel = safe_read_dict(kwargs, 'n_output_channel', 1)
-        self.kernel_size = safe_read_dict(kwargs, 'kernel_size', 1)
-        self.stride = safe_read_dict(kwargs, 'stride', 1)
-        self.padding = safe_read_dict(kwargs, 'padding', 0)
+        self.n_input_channel = safe_read_dict(kwargs, 'n_input_channel', -1)
+        self.input_width = safe_read_dict(kwargs, 'input_width', -1)
+        self.input_height = safe_read_dict(kwargs, 'input_height', -1)
+        self.n_output_channel = safe_read_dict(kwargs, 'n_output_channel', -1)
+        self.kernel_size = safe_read_dict(kwargs, 'kernel_size', -1)
+        self.stride = safe_read_dict(kwargs, 'stride', -1)
+        self.padding = safe_read_dict(kwargs, 'padding', -1)
 
         self.initialization = safe_read_dict(kwargs, 'initialization', None)
         self.is_bias = safe_read_dict(kwargs, 'is_bias', True)
@@ -166,10 +188,8 @@ class Conv2D(Operation):
 
         # ===============================Important!!!================================
         # ===== Generated Process
-        Y = ListAdd()([Y_i]),
+        Y = SetSubTensor(i)([Y_i]),
             i = 0, 1, ..., n_output_channel-1,
-            ListAdd iterates over output channels,
-                (ListAdd is implemented by using Add iteratively)
 
         Y_i = ListAdd()([ A_j ]) + b_i
             j = 0, 1, ..., n_input_channel-1,
@@ -225,19 +245,35 @@ class Conv2D(Operation):
                                (0, self.kernel_size),
                                (0, self.kernel_size))
                 W_i = GetSubTensor(coord_tuple)(self.W)
+
+                # W_i: [K, K]
                 target_shape = (self.kernel_size, self.kernel_size)
                 W_i = Reshape(target_shape=target_shape)(W_i)
 
+                assert W_i.data.shape == (self.kernel_size, self.kernel_size)
+
                 # A_j: [n_samples, output_width, output_height]
                 # W_i: [K, K]
-                self.kwargs['W'] = W_i
-                A_j = ConvCore2D(kwargs=self.kwargs)(X_j)
-                #A_j = ConvCore2D()(X_j)
+                A_j = ConvCore2D(W=W_i,
+                                 input_width=self.input_width,
+                                 input_height=self.input_height,
+                                 kernel_size=self.kernel_size,
+                                 stride=self.stride,
+                                 padding=self.padding
+                                 )(X_j)
+
+                assert A_j.data.shape == (self.n_samples,
+                                          self.output_width,
+                                          self.output_height)
 
                 # Y_i: [n_samples, output_width, output_height]
                 # A_j: [n_samples, output_width, output_height]
                 Y_i = Add()(Y_i, A_j)
 
+            """
+            # Actually, bias can be added in the very end of the 
+            # output_chanel. 
+             
             if self.is_bias:
                 # b: [n_output_channel, 1]
                 # b_i: [1, 1]
@@ -250,13 +286,44 @@ class Conv2D(Operation):
                 # Rely on broadcast of numpy in `Add`.
                 # Here b_i is [1, 1], `Reshape` is not needed.
                 Y_i = Add()(Y_i, b_i)
+            """
 
-            # Y_i: [n_samples, output_width, output_height]
             # Y_pred = [n_sample, n_output_channel, output_width, output_height]
+            # Y_i: [n_samples, output_width, output_height]
             coord_tuple = ((0, self.n_samples),
                            (i, i+1),
                            (0, self.output_width),
                            (0, self.output_height))
+
+            target_shape = (self.n_samples, 1, self.output_width, self.output_height)
+            Y_i = Reshape(target_shape=target_shape)(Y_i)
+
+            assert Y_i.data.shape == target_shape
+
             Y_pred = SetSubTensor(coord_tuple)(Y_pred, Y_i)
+
+        if self.is_bias:
+            # Y_pred: [n_samples, n_output_channel, output_width, output_height]
+            # b: [n_output_channel, 1]
+
+            repeat_time = self.output_width * self.output_height
+            target_shape = (self.n_output_channel,
+                            self.output_width,
+                            self.output_height)
+
+            b = Repeat(repeat_time = repeat_time,
+                       target_shape = target_shape)(self.b)
+
+            assert b.data.shape == (self.n_output_channel,
+                                    self.output_width,
+                                    self.output_height)
+
+            # Note: Rely on Broadcast of numpy.
+            Y_pred = Add()(Y_pred, b)
+
+            assert Y_pred.data.shape == (self.n_samples,
+                                         self.n_output_channel,
+                                         self.output_width,
+                                         self.output_height)
 
         return Y_pred

@@ -9,6 +9,9 @@ np.random.seed(20170430)
 class Padding2D(Operation):
     # Atom Unary Operation
 
+    # TODO
+    # Padding = 'same' or 'valid'
+
     def __init__(self, *args, **kwargs):
         super(Padding2D, self).__init__()
 

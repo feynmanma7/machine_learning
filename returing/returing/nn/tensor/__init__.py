@@ -10,11 +10,13 @@ class Tensor(object):
     requires_grad = None
     grad_fn = None # Important, gradient_function is an Operation!
     grad = None
+    output_shape = None
 
     # Point to Tensor
     left_child = None
     right_child = None
     parent = None
+
 
     def __init__(self,
                  data=None,
@@ -36,7 +38,7 @@ class Tensor(object):
         if not self.grad_fn:
             return
 
-        grad_out = 1
+        grad_out = None
         if isinstance(self.grad, np.ndarray):
             grad_out = self.grad
 
@@ -48,9 +50,10 @@ class Tensor(object):
         if self.right_child:
             self.right_child.backward()
 
-    def print(self):
-        print(self.data)
+    def print(self, print_data=True):
 
+        if print_data:
+            print(self.data)
         if self.requires_grad:
             print('requires_grad =', self.requires_grad)
         if self.grad_fn:
