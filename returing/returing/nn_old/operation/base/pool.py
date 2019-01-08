@@ -2,7 +2,7 @@ from returing.nn_old.operation import Operation
 from returing.nn_old.tensor import Tensor
 
 from returing.nn_old.operation.base import Sum, ElementWiseMul
-# from returing.nn_0.1.operation import
+# from returing.nn_old.operation import
 
 import numpy as np
 np.random.seed(20170430)

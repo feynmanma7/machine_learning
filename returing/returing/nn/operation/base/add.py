@@ -20,16 +20,18 @@ class Add(Operation):
 
         assert a.shape() == b.shape()
 
+        # Create return tensor.
         c = Tensor()
-        c.data = a.data + b.data
-        c.grad_fn = self
-        if a.requires_grad or b.requires_grad:
+        c.data = a.data + b.data # 1. data
+        c.grad_fn = self # 2. grad_fn
+        if a.requires_grad or b.requires_grad: # 3. requires_grad
             c.requires_grad = True
 
         # Build computational graph.
-        self.input_shape = a.shape()
-        self.output_shape = a.shape()
-        self.input_list = [a, b]
+        self.input_list = [a, b]  # 1.input_list, for recursion
+        self.output_shape = a.shape()  # 3. output_shape_list
+        self.input_shape = a.shape() # 3. input_shape_list, optional
+        # 4. save_tensors for backward, optional
 
         return c
 

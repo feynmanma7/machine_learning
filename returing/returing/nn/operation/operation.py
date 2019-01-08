@@ -5,6 +5,7 @@ np.random.seed(20170430)
 class Operation(object):
 
     input_list = None
+    # output_shape_list = None
 
     def __init__(self):
         pass
