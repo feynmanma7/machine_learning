@@ -75,11 +75,37 @@ the error is propagated from root recursively until meet the leaf node.
 + Methods
 
 > `backward()`: Pass current tensor itself and its `grad` to the `backward` 
-function of current tensor's `grad_fn`. 
+function of current tensor's `grad_fn`, 
+and <b>recursively</b> call `backward` of the `*inputs` tensors of `grad_fn`. 
 
-## 2. Module
+## 2. Module(Function)
 
-## 3. Parameter
+Composite of `Function`, only `forward` function is need to be implemented
+if only existing `Function` used.
+
+Some neural network like Convolutional Neural Network 
+or Full Connected Layer composed of input tensors and
+weights (defined as `Parameter`).
+
+A `Module` can be seen as one `Function` logically, 
+with input tensors and output tensors as `Edge`,
+and a function as `Node`. 
+
+## 3. Parameter(Tensor)
+
+`Tensor` need to be initialized and updated iteratively,
+`requires_grad` default.  
+
+## 4. Optimizer(Function)
+
+Rule to update `Parameter`, is a `Function` logically, 
+with input tensors and output tensors and a function (update rule).
+
+## 5. Initializer(Function)
+
+Specifically an optimizer.
+
+
 
  
 
