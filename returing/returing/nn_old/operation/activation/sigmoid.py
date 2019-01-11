@@ -7,7 +7,7 @@ np.random.seed(20170430)
 
 
 class Sigmoid(Operation):
-    # Unary operation
+    # Unary function
     A = None
     C = None
 

@@ -1,12 +1,12 @@
 """
 Operation is atom.
-Only support unary and binary operation.
+Only support unary and binary function.
 
 # ===== Atom Operation
 ## === forward
 The forward function must be implemented.
 
-+ Save input tensor for current operation.
++ Save input tensor for current function.
 
 + Return a new tensor.
 
@@ -16,7 +16,7 @@ The forward function must be implemented.
 
 ## === backward is must
 
-Update the grad of the input tensor(s) of current operation.
+Update the grad of the input tensor(s) of current function.
 
 The grad must have the same shape with the corresponding tensor(s).
 

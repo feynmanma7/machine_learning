@@ -6,7 +6,7 @@ np.random.seed(20170430)
 
 
 class ReLU(Operation):
-    # Unary operation
+    # Unary function
     A = None
 
     def __init__(self, name=None):

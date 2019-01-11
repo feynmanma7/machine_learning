@@ -15,7 +15,7 @@ Composition of atom operations.
 Input(Tensor)
 Output(Tensor) = self.forward(Input)
 
-For atom operation, implementation of backward is necessary, 
+For atom function, implementation of backward is necessary, 
 while for model is not.  
 """
 

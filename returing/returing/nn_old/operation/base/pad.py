@@ -40,7 +40,7 @@ class Padding2D(Operation):
         self.n_samples = n_samples
 
         X = args[0]
-        self.X = X  # 1.Save input tensors for current operation
+        self.X = X  # 1.Save input tensors for current function
 
         P = self.padding
 
@@ -57,7 +57,7 @@ class Padding2D(Operation):
             Y_pred_data[:, P:-P, P:-P] = X.data
 
         Y_pred = Tensor(Y_pred_data)
-        Y_pred.grad_fn = self # 3. Set grad_fn & requires_grad for current operation
+        Y_pred.grad_fn = self # 3. Set grad_fn & requires_grad for current function
         if self.X.requires_grad:
             Y_pred.requires_grad = True
 
@@ -82,7 +82,7 @@ class Padding2D(Operation):
 
         assert isinstance(self.X.data, np.ndarray)
 
-        # For padding operation, the gradient is 1.
+        # For padding function, the gradient is 1.
         if not isinstance(padded_grad_out, np.ndarray):
             # X_data: [n_samples, width, height]
             # grad_out: [n_samples, width, height]

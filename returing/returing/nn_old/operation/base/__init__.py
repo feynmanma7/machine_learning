@@ -134,7 +134,7 @@ class Subtract(Operation):
 
 
 class Sum(Operation):
-    # Unary operation
+    # Unary function
     A = None
 
     def __init__(self, axis=None, target_shape=None, name=None):

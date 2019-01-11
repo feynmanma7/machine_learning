@@ -41,7 +41,7 @@ class Sliding2D(Operation):
         assert len(args[0].data.shape) == 3
 
         X = args[0]
-        self.X = X  # 1.Save input tensors for current operation
+        self.X = X  # 1.Save input tensors for current function
 
         Y_pred_data = self.X.data[:, self.width_idx * self.stride :
                              self.width_idx  * self.stride + self.kernel_size,
@@ -49,7 +49,7 @@ class Sliding2D(Operation):
                       self.height_idx * self.stride + self.kernel_size]
 
         Y_pred = Tensor(Y_pred_data)
-        Y_pred.grad_fn = self # 3. Set grad_fn & requires_grad for current operation
+        Y_pred.grad_fn = self # 3. Set grad_fn & requires_grad for current function
         if self.X.requires_grad:
             Y_pred.requires_grad = True
 
@@ -80,7 +80,7 @@ class Sliding2D(Operation):
         K = self.kernel_size
         n_samples = self.X.data.shape[0]
 
-        # For sliding operation, the gradient is 1.
+        # For sliding function, the gradient is 1.
         cur_grad = np.ones((n_samples, self.kernel_size, self.kernel_size))
 
         if not isinstance(grad_out, np.ndarray):
