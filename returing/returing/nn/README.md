@@ -37,16 +37,15 @@ whose `forward` and `backward` method must be implemented.
 
 + Methods
 
-> `forward(*inputs)`: `*inputs` is tuple of input tensor, the function
+> `forward(inputs)`: `inputs` is tuple of input tensor, the function
 return tuple of output tensor computes as the function itself. 
 Some tensors are retained in the cache if necessary. 
 Must be implemented in all of the subclasses. 
 `forward` is called in the `__call__` function of the instance, 
 which means once a `Function` or `Module` object is <b>instantiated</b>, 
-the method is called immediately.
+the method is called immediately. Tuple of output tensor is returned.
 
-> `backward(*inputs, *grad_out)`: `*inputs` is tuple of input tensor, 
-`*grad_out` is tuple of tensor which is
+> `backward(grads)`: `grads` is tuple of tensor which is
  gradient of the corresponding output tensor.
  
 > `__call__`: Call the `forward` function, 
@@ -61,7 +60,7 @@ and trace the relationships to build the computational graph physically or logic
 > `requires_grad`: bool, default False, 
 if True, `grad` is computed.
 
-> `grad`: numpy.ndarray (or like), if `requires_grad`, `grad` is computed, 
+> `grad`: tensor, if `requires_grad`, `grad` is computed, 
 but only retained if current tensor is leaf node or set to be retained explicitly.
 
 > `grad_fn`: `Function` (or `Module`) or None, if not none, is the 
@@ -90,6 +89,9 @@ weights (defined as `Parameter`).
 A `Module` can be seen as one `Function` logically, 
 with input tensors and output tensors as `Edge`,
 and a function as `Node`. 
+
+It's better to know what you're implemented is a `Function` or 
+a `Module`.
 
 ## 3. Parameter(Tensor)
 

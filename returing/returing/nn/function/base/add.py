@@ -21,14 +21,19 @@ class Add(Function):
 
     def backward(self, grads):
         a_grad_shape, b_grad_shape = self.saved_context
+        self.saved_context = None
 
-        a_grad = np.ones(a_grad_shape)
-        b_grad = np.ones(b_grad_shape)
+        a_grad_data = np.ones(a_grad_shape)
+        b_grad_data = np.ones(b_grad_shape)
 
         c_grad = grads
-        if isinstance(c_grad, np.ndarray):
-            a_grad *= c_grad
-            b_grad *= c_grad
+        if isinstance(c_grad, Tensor):
+            c_grad_data = c_grad.data
+            a_grad_data *= c_grad_data
+            b_grad_data *= c_grad_data
+
+        a_grad = Tensor(a_grad_data)
+        b_grad = Tensor(b_grad_data)
 
         return a_grad, b_grad
 

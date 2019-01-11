@@ -14,21 +14,13 @@ def test_add():
     print(c.data)
     assert np.array_equal(c.data, np.array([[3, 5, 8, 12]]))
 
-    #c.backward()
-    #assert np.array_equal(a.grad.data, np.array([[1., 1., 1., 1.]]))
-    #assert np.array_equal(b.grad.data, np.array([[1., 1., 1., 1.]]))
-
-    #print(a.grad.data)
-    #print(b.grad.data)
-
-    # ----
     d, = add.Add()(a, c)
     print(d.data)
     d.backward()
-    print(a.grad)
-    print(b.grad)
-
+    print(a.grad.data)
+    print(b.grad.data)
 
 
 if __name__ == '__main__':
     test_add()
+

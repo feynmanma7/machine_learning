@@ -1,10 +1,5 @@
-from returing.nn.tensor.tensor import Tensor
 import numpy as np
 np.random.seed(20170430)
 
-
-def random_init_tensor(shape, **kwargs):
-    # Valid numpy shape, int or tuple of int
-    # --- assert isinstance(shape, int) or isinstance(shape, tuple)
-
-    return Tensor(np.random.random(shape), **kwargs)
+def random_init(shape):
+    return np.random.random(shape)

@@ -4,8 +4,13 @@ np.random.seed(20170430)
 
 class Function(object):
 
+    # tuple of input tensor
     inputs = None
+
+    # tuple of output tensor
     outputs = None
+
+    # save context specifically for backward, optional.
     saved_context = None
 
     def __init__(self):
@@ -38,9 +43,16 @@ class Function(object):
         return outputs
 
     def forward(self, inputs):
+        # Input: tuple of input tensor
+        # Output: tuple of output tensor
+        # Must return a tuple,
+        # e.g. return X,
         raise NotImplementedError
 
     def backward(self, grads):
+        # Input: tuple of numpy.ndarray, gradient w.r.t outputs,
+        # Output: tuple of numpy.ndarray, gradient w.r.t inputs.
+        # If return, must return a tuple, e.g.: return X_grad.
         pass
 
 
