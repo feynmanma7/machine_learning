@@ -17,5 +17,6 @@ def test_dense():
     print(dense_layer.W.data)
     print(dense_layer.bias.data)
 
+
 if __name__ == '__main__':
     test_dense()

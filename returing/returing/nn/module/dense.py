@@ -49,9 +49,9 @@ class Dense(Module):
         """
         X, = inputs
 
-        y_pred = linear.Linear(self.n_in_features,
-                               self.n_out_features,
-                               self.is_bias)(X, self.W, self.bias)
+        y_pred = linear.LinearFunc(self.n_in_features,
+                                   self.n_out_features,
+                                   self.is_bias)(X, self.W, self.bias)
 
         #y_pred = self.activaion(y_pred)
 

@@ -1,5 +1,4 @@
 import numpy as np
-np.random.seed(20170430)
 
 
 class Tensor(object):
@@ -11,51 +10,64 @@ class Tensor(object):
     # np.ndarray
     data = None
 
-    # tensor, same data shape with data if exists.
+    # tensor, Only retained if current tensor is leaf or
+    # forced to be retained.
     grad = None
 
-    # operation
+    # function
     grad_fn = None
 
     # bool, if false, no need to compute grad of current tensor.
-    requires_grad = None
+    requires_grad = False
+
+    # bool, default false
+    is_leaf = False
+
+    # bool, default false
+    is_retained = False
 
     def __init__(self,
                  data=None,
-                 requires_grad=None):
+                 requires_grad=False,
+                 is_leaf=False,
+                 is_retained=False):
         self.data = data
         self.requires_grad = requires_grad
+        self.is_leaf = is_leaf
+        self.is_retained = is_retained
 
     def backward(self):
         if not self.grad_fn:
             return
 
+        """
         if not self.requires_grad:
             return
+        """
 
-        grad_out_list = self.grad_fn.backward(self.grad)
+        grads = self.grad_fn.backward(self.grad)
 
-        if not isinstance(self.grad_fn.input_list, list):
-            return
+        # Recursively call current tensor's grad_fn's
+        # inputs' backward function.
+        fn_inputs = self.grad_fn.inputs
 
-        assert len(self.grad_fn.input_list) == len(grad_out_list)
-
-        for idx in range(len(self.grad_fn.input_list)):
-            input_tensor = self.grad_fn.input_list[idx]
-
-            if not input_tensor.requires_grad:
+        for idx, fn_input in enumerate(fn_inputs):
+            if not fn_input.requires_grad:
                 continue
 
-            # Update grad of input_tensor
-            if isinstance(input_tensor.grad, Tensor) and \
-                    not input_tensor.grad.is_empty():
-                # If has grad, add current grad to original grad.
-                input_tensor.grad.add(grad_out_list[idx])
-            else:
-                # If no grad, create a new tensor.
-                input_tensor.grad = grad_out_list[idx]
+            # Set grad, immediate save grad,
+            # delete if not retained in the subclasses.
+            fn_input.grad = grads[idx]
 
-            input_tensor.backward()
+            # If leaf, stop.
+            if fn_input.is_leaf:
+                continue
+
+            fn_input.backward()
+
+            # Delete grad if necessary, if not retained grad, set None.
+            if not fn_input.is_retained:
+                fn_input.grad = None
 
     def is_empty(self):
         if not isinstance(self.data, np.ndarray):
@@ -67,7 +79,6 @@ class Tensor(object):
         return self.data.shape
 
     def add(self, a):
-        assert (a, Tensor)
         assert not a.is_empty()
         assert self.shape() == a.shape()
         self.data += a.data

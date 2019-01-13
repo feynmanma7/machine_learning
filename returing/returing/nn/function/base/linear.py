@@ -5,7 +5,7 @@ from returing.nn.util.initialization import random_init
 import numpy as np
 
 
-class Linear(Function):
+class LinearFunc(Function):
 
     inputs = None
     outputs = None
@@ -14,7 +14,7 @@ class Linear(Function):
                  n_in_features,
                  n_out_features,
                  is_bias=True):
-        super(Linear, self).__init__()
+        super(LinearFunc, self).__init__()
 
         self.n_in_features = n_in_features
         self.n_out_features = n_out_features
@@ -43,7 +43,10 @@ class Linear(Function):
         y_pred = Tensor(y_pred_data)
 
         n_samples = X.data.shape[0]
-        self.saved_context = X.requires_grad, W.requires_grad, bias.requires_grad, \
+
+        bias_requires_grad = bias.requires_grad if isinstance(bias, Tensor) else False
+
+        self.saved_context = X.requires_grad, W.requires_grad, bias_requires_grad, \
                              n_samples, X, W
 
         return y_pred,

@@ -3,10 +3,10 @@ from returing.nn.tensor.tensor import Tensor
 import numpy as np
 
 
-class Add(Function):
+class AddFunc(Function):
 
     def __init__(self):
-        super(Add, self).__init__()
+        super(AddFunc, self).__init__()
 
     def forward(self, inputs):
 
