@@ -11,8 +11,6 @@ from returing.nn.function.base.add_fn import BatchAdd
 
 from returing.nn.function.conv.padding2d import Padding2D
 
-from returing.nn.tensor.tensor import Tensor
-
 
 class Conv2DModule(Module):
 
@@ -28,11 +26,6 @@ class Conv2DModule(Module):
         self.n_output_channel = kwargs['n_output_channel']
         self.is_bias = kwargs['is_bias']
 
-    """
-    def __call__(self, *args, **kwargs):
-        return self.forward(args)
-    """
-
     def forward(self, inputs):
         X, W, bias = inputs
 
@@ -47,10 +40,6 @@ class Conv2DModule(Module):
                              self.n_output_channel,
                              self.output_width,
                              self.output_height)
-
-        bias_requires_grad = bias.requires_grad if isinstance(bias, Tensor) else False
-
-        self.saved_context = X.requires_grad, W.requires_grad, bias_requires_grad
 
         # X: [n_samples, n_in_ch, in_w, in_h]
         # padding_X: [n_samples, n_in_ch, in_w+2p, in_h+2p]
