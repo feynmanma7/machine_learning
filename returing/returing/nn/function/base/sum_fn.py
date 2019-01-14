@@ -3,10 +3,37 @@ from returing.nn.tensor.tensor import Tensor
 import numpy as np
 
 
-class BatchSumFunc(Function):
+class Sum(Function):
 
     def __init__(self):
-        super(BatchSumFunc, self).__init__()
+        super(Sum, self).__init__()
+
+    def forward(self, inputs):
+        X, = inputs
+        y_pred = Tensor(np.sum(X.data))
+
+        self.saved_context = X.data.shape
+
+        return y_pred,
+
+    def backward(self, grads):
+        X_data_shape = self.saved_context
+        X_grad_data = np.ones(X_data_shape)
+
+        if isinstance(grads, tuple):
+            y_pred_grad, = grads
+            X_grad_data *= y_pred_grad.data
+
+        X_grad = Tensor(X_grad_data)
+
+        return X_grad,
+
+
+
+class BatchSum(Function):
+
+    def __init__(self):
+        super(BatchSum, self).__init__()
 
     def forward(self, inputs):
         # X: [n_samples, shape]
@@ -37,7 +64,7 @@ class BatchSumFunc(Function):
 
         X_grad = Tensor(X_grad_data)
 
-        self.saved_context = None
+        #self.saved_context = None
 
         return X_grad,
 

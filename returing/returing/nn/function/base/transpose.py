@@ -16,7 +16,7 @@ def _get_transpose_back_axes(axes):
     return tuple(np.argsort(axes))
 
 
-class TransposeFunc(Function):
+class Transpose(Function):
 
     """
     See numpy.transpose
@@ -27,7 +27,7 @@ class TransposeFunc(Function):
     """
 
     def __init__(self, axes=None):
-        super(TransposeFunc, self).__init__()
+        super(Transpose, self).__init__()
 
         self.axes = axes
 
@@ -53,6 +53,6 @@ class TransposeFunc(Function):
 
         X_grad = Tensor(X_grad_data)
 
-        self.saved_context = None
+        #self.saved_context = None
 
         return X_grad,

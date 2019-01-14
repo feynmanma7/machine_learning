@@ -3,10 +3,10 @@ from returing.nn.tensor.tensor import Tensor
 import numpy as np
 
 
-class RepeatFunc(Function):
+class Repeat(Function):
 
     def __init__(self, repeat_times=None):
-        super(RepeatFunc, self).__init__()
+        super(Repeat, self).__init__()
 
         self.repeat_times = repeat_times
 
@@ -29,8 +29,8 @@ class RepeatFunc(Function):
         if isinstance(grads, tuple):
             y_pred_grad, = grads
             X_grad_data *= \
-                np.mean(y_pred_grad.data.reshape((self.repeat_times, -1), \
-                                             axis=0))
+                np.mean(y_pred_grad.data.reshape((self.repeat_times, -1)), \
+                        axis=0)
 
         X_grad = Tensor(X_grad_data)
 

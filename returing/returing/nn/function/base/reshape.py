@@ -3,10 +3,10 @@ from returing.nn.tensor.tensor import Tensor
 import numpy as np
 
 
-class ReshapeFunc(Function):
+class Reshape(Function):
 
     def __init__(self, target_shape=None):
-        super(ReshapeFunc, self).__init__()
+        super(Reshape, self).__init__()
         self.target_shape = target_shape
 
     def forward(self, inputs):
@@ -28,6 +28,6 @@ class ReshapeFunc(Function):
             X_grad_data *= y_pred_grad.data.reshape(X_data_shape)
         X_grad = Tensor(X_grad_data)
 
-        self.saved_context = None
+        #self.saved_context = None
 
         return X_grad,

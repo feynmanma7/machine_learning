@@ -45,7 +45,7 @@ class Tensor(object):
             return
         """
 
-        grads = self.grad_fn.backward(self.grad)
+        grads = self.grad_fn.backward(tuple([self.grad]))
 
         # Recursively call current tensor's grad_fn's
         # inputs' backward function.

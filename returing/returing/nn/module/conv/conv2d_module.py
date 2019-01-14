@@ -1,15 +1,15 @@
 from returing.nn.module.module import Module
 
-from returing.nn.function.base.reshape_func import ReshapeFunc
-from returing.nn.function.base.repeat_func import RepeatFunc
-from returing.nn.function.base.batch_matmul_func import BatchMatMulFunc
-from returing.nn.function.base.get_sub_tensor_func import GetSubTensorFunc
-from returing.nn.function.base.concat_func import ConcatFunc
-from returing.nn.function.base.transpose_func import TransposeFunc
-from returing.nn.function.base.batch_sum_func import BatchSumFunc
-from returing.nn.function.base.add_func import AddFunc
+from returing.nn.function.base.reshape import Reshape
+from returing.nn.function.base.repeat import Repeat
+from returing.nn.function.base.batch_matmul import BatchMatMul
+from returing.nn.function.base.get_sub_tensor import GetSubTensor
+from returing.nn.function.base.concat import Concat
+from returing.nn.function.base.transpose import Transpose
+from returing.nn.function.base.sum_fn import BatchSum
+from returing.nn.function.base.add_fn import BatchAdd
 
-from returing.nn.function.conv.padding2d_func import Padding2DFunc
+from returing.nn.function.conv.padding2d import Padding2D
 
 from returing.nn.tensor.tensor import Tensor
 
@@ -54,7 +54,7 @@ class Conv2DModule(Module):
 
         # X: [n_samples, n_in_ch, in_w, in_h]
         # padding_X: [n_samples, n_in_ch, in_w+2p, in_h+2p]
-        padding_X, = Padding2DFunc(padding=self.padding)(X)
+        padding_X, = Padding2D(padding=self.padding)(X)
 
         #y_pred = Tensor()
 
@@ -67,7 +67,7 @@ class Conv2DModule(Module):
                            (0, self.n_input_channel),
                            (0, self.kernel_size),
                            (0, self.kernel_size))
-            W_oC, = GetSubTensorFunc(coord_tuple=coord_tuple)(W)
+            W_oC, = GetSubTensor(coord_tuple=coord_tuple)(W)
 
             for w_idx in range(self.output_width):
                 for h_idx in range(self.output_height):
@@ -79,43 +79,43 @@ class Conv2DModule(Module):
                                    (h_idx*self.stride, h_idx*self.stride + self.kernel_size))
 
                     # sub_X: [n_samples, n_in_ch, K, K]
-                    sub_X, = GetSubTensorFunc(coord_tuple=coord_tuple)(padding_X, )
+                    sub_X, = GetSubTensor(coord_tuple=coord_tuple)(padding_X, )
 
                     # sub_X: [n_samples, n_in_ch, K, K]
-                    sub_X, = BatchMatMulFunc()(sub_X, W_oC)
+                    sub_X, = BatchMatMul()(sub_X, W_oC)
 
                     # x: [n_samples, ]
-                    x, = BatchSumFunc()(sub_X)
+                    x, = BatchSum()(sub_X)
 
                     pred_tensor_list.append(x)
 
         # From tuple of tensor to `One` tensor
         # Two dims, [n_out_ch * out_w * out_h, n_samples]
-        y_pred, = ConcatFunc()(*tuple(pred_tensor_list))
+        y_pred, = Concat()(*tuple(pred_tensor_list))
 
         target_shape = (self.n_output_channel,
                         self.output_width,
                         self.output_height,
                         self.n_samples)
-        y_pred, = ReshapeFunc(target_shape=target_shape)(y_pred)
+        y_pred, = Reshape(target_shape=target_shape)(y_pred)
 
         # Raw: [n_out_ch, out_w, out_h, n_samples]
         # Target: [n_samples, n_out_ch, out_w, out_h]
-        y_pred, = TransposeFunc(axes=(3, 0, 1, 2))(y_pred)
+        y_pred, = Transpose(axes=(3, 0, 1, 2))(y_pred)
 
         if self.is_bias:
             # bias --> [n_out_ch * out_w * out_h, ]
             repeat_times = self.output_width * self.output_height
-            bias, = RepeatFunc(repeat_times=repeat_times)(bias)
+            bias, = Repeat(repeat_times=repeat_times)(bias)
 
             # bias --> [n_out_ch, out_w, out_h]
             target_shape = (self.n_output_channel,
                             self.output_width,
                             self.output_height)
-            bias, = ReshapeFunc(target_shape=target_shape)(bias)
+            bias, = Reshape(target_shape=target_shape)(bias)
 
             # y_pred: [n_samples, n_out_ch, out_w, out_h]
             # bias: [n_out_ch, out_w, out_h]
-            y_pred, = AddFunc()(y_pred, bias)
+            y_pred, = BatchAdd()(y_pred, bias)
 
         return y_pred,

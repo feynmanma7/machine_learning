@@ -3,10 +3,10 @@ from returing.nn.tensor.tensor import Tensor
 import numpy as np
 
 
-class BatchMatMulFunc(Function):
+class BatchMatMul(Function):
 
     def __init__(self):
-        super(BatchMatMulFunc, self).__init__()
+        super(BatchMatMul, self).__init__()
 
     def forward(self, inputs):
         X, W = inputs
@@ -53,6 +53,6 @@ class BatchMatMulFunc(Function):
         X_grad = Tensor(X_grad_data)
         W_grad = Tensor(W_grad_data)
 
-        self.saved_context = None
+        #self.saved_context = None
 
         return X_grad, W_grad

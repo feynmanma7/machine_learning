@@ -10,7 +10,8 @@ class Module(object):
     # tuple of output tensor
     outputs = None
 
-    # tuple of parameter
+    # `list` of parameter,
+    # for tuple.add will create new tuple while list.append not.
     parameters = None
 
     def __init__(self):

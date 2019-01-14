@@ -3,10 +3,10 @@ from returing.nn.tensor.tensor import Tensor
 import numpy as np
 
 
-class Padding2DFunc(Function):
+class Padding2D(Function):
 
     def __init__(self, padding=None):
-        super(Padding2DFunc, self).__init__()
+        super(Padding2D, self).__init__()
         self.padding = padding
 
     def forward(self, inputs):

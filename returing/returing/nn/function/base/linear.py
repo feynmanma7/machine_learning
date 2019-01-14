@@ -3,7 +3,7 @@ from returing.nn.tensor.tensor import Tensor
 import numpy as np
 
 
-class LinearFunc(Function):
+class Linear(Function):
 
     inputs = None
     outputs = None
@@ -12,7 +12,7 @@ class LinearFunc(Function):
                  n_in_features,
                  n_out_features,
                  is_bias=True):
-        super(LinearFunc, self).__init__()
+        super(Linear, self).__init__()
 
         self.n_in_features = n_in_features
         self.n_out_features = n_out_features
@@ -94,7 +94,7 @@ class LinearFunc(Function):
 
             bias_grad = Tensor(bias_grad_data)
 
-        self.saved_context = None
+        #self.saved_context = None
 
         return X_grad, W_grad, bias_grad
 

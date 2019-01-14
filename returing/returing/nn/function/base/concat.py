@@ -3,7 +3,7 @@ from returing.nn.tensor.tensor import Tensor
 import numpy as np
 
 
-class ConcatFunc(Function):
+class Concat(Function):
 
     """
     Input: tuple of tensor
@@ -12,7 +12,7 @@ class ConcatFunc(Function):
 
     """
     def __init__(self):
-        super(ConcatFunc, self).__init__()
+        super(Concat, self).__init__()
 
     def forward(self, inputs):
         y_pred_data = []
@@ -36,10 +36,11 @@ class ConcatFunc(Function):
         for idx in range(n_input):
             input_tensor_grad_data = np.ones(input_tensor_shape)
             if isinstance(grads, tuple):
-                input_tensor_grad_data *= grads[idx].data
+                y_pred_grad, = grads
+                input_tensor_grad_data *= y_pred_grad.data[idx]
 
             inputs_grad.append(Tensor(input_tensor_grad_data))
 
-        self.saved_context = None
+        #self.saved_context = None
 
         return tuple(inputs_grad)

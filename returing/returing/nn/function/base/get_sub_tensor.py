@@ -17,10 +17,10 @@ def _to_slice_tuple(coord_tuple):
     return tuple(slice_tuple)
 
 
-class GetSubTensorFunc(Function):
+class GetSubTensor(Function):
 
     def __init__(self, coord_tuple=None):
-        super(GetSubTensorFunc, self).__init__()
+        super(GetSubTensor, self).__init__()
 
         # coordinate tuple must transform to slice tuple first.
         # e.g. ((0, 2), (0, 3), (0, 4), (1, 5)) ==>
