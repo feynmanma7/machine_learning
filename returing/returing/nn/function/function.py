@@ -50,9 +50,9 @@ class Function(object):
         raise NotImplementedError
 
     def backward(self, grads):
-        # Input: tuple of numpy.ndarray, gradient w.r.t outputs,
-        # Output: tuple of numpy.ndarray, gradient w.r.t inputs.
-        # If return, must return a tuple, e.g.: return X_grad.
+        # Input: tuple of tensor, gradient w.r.t outputs,
+        # Output: tuple of tensor, gradient w.r.t inputs.
+        # If return, must return a tuple, e.g.: `return X_grad,`.
         pass
 
 

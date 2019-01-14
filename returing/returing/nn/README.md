@@ -77,7 +77,7 @@ the error is propagated from root recursively until meet the leaf node.
 function of current tensor's `grad_fn`, 
 and <b>recursively</b> call `backward` of the `*inputs` tensors of `grad_fn`. 
 
-## 2. Module(Function)
+## 2. Module(object)
 
 Composite of `Function`, only `forward` function is need to be implemented
 if only existing `Function` used.

@@ -1,9 +1,7 @@
 from returing.nn.module.module import Module
-from returing.nn.tensor.tensor import Tensor
 from returing.nn.tensor.parameter import Parameter
-from returing.nn.util import initialization
 from returing.nn.util.initialization import random_init
-import returing.nn.function as F
+from returing.nn.module.conv import conv2d_module
 import numpy as np
 np.random.seed()
 
@@ -52,7 +50,7 @@ class Conv2D(Module):
 
         initializer = kwargs['initializer']
 
-        self.conv2d_func = F.conv.conv2d.Conv2D(**kwargs)
+        self.conv2d_module = conv2d_module.Conv2DModule(**kwargs)
 
         # Initialization
         if not initializer:
@@ -70,7 +68,8 @@ class Conv2D(Module):
     def forward(self, inputs):
         X, = inputs
 
-        return self.conv2d_func(X, self.W, self.bias)
+        y_pred = self.conv2d_module(X, self.W, self.bias)
+        return y_pred
 
 
 

@@ -1,7 +1,5 @@
 from returing.nn.function.function import Function
 from returing.nn.tensor.tensor import Tensor
-from returing.nn.tensor.parameter import Parameter
-from returing.nn.util.initialization import random_init
 import numpy as np
 
 
@@ -52,11 +50,8 @@ class LinearFunc(Function):
         return y_pred,
 
     def backward(self, grads):
-        y_pred_grad, = grads
-
         X_requires_grad, W_requires_grad, bias_requires_grad, n_samples, X, W = \
             self.saved_context
-        self.saved_context = None
 
         X_grad = None
         W_grad = None
@@ -68,7 +63,8 @@ class LinearFunc(Function):
             X_grad_data = np.repeat(np.sum(W.data, axis=1), n_samples).reshape(
                 (n_samples, self.n_in_features))
 
-            if isinstance(y_pred_grad, Tensor):
+            if isinstance(grads, tuple):
+                y_pred_grad, = grads
                 # y_pred_grad_data: [n_samples, n_out_features]
                 X_grad_data *= np.repeat(np.sum(y_pred_grad.data, axis=1), self.n_in_features).\
                     reshape((n_samples, self.n_in_features))
@@ -81,7 +77,8 @@ class LinearFunc(Function):
             W_grad_data = np.repeat(np.sum(X.data, axis=0), self.n_out_features).reshape(
                 (self.n_in_features, self.n_out_features))
 
-            if isinstance(y_pred_grad, Tensor):
+            if isinstance(grads, tuple):
+                y_pred_grad, = grads
                 # y_pred_grad.data: [n_samples, n_out_features]
                 W_grad_data *= np.sum(y_pred_grad.data, axis=0).reshape((1, self.n_out_features))
 
@@ -96,6 +93,8 @@ class LinearFunc(Function):
                 bias_grad_data *= np.sum(y_pred_grad.data, axis=0)
 
             bias_grad = Tensor(bias_grad_data)
+
+        self.saved_context = None
 
         return X_grad, W_grad, bias_grad
 

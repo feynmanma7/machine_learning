@@ -56,8 +56,13 @@ class Tensor(object):
                 continue
 
             # Set grad, immediate save grad,
-            # delete if not retained in the subclasses.
-            fn_input.grad = grads[idx]
+            #   delete if not retained in the subclasses.
+            # If grad exists, accumulate to the raw grad.
+            if isinstance(fn_input.grad, Tensor):
+                fn_input.grad.data += grads[idx].data
+            else:
+                if isinstance(grads, tuple):
+                    fn_input.grad = grads[idx]
 
             # If leaf, stop.
             if fn_input.is_leaf:

@@ -21,13 +21,12 @@ class AddFunc(Function):
 
     def backward(self, grads):
         a_grad_shape, b_grad_shape = self.saved_context
-        self.saved_context = None
 
         a_grad_data = np.ones(a_grad_shape)
         b_grad_data = np.ones(b_grad_shape)
 
-        c_grad = grads
-        if isinstance(c_grad, Tensor):
+        if isinstance(grads, tuple):
+            c_grad, = grads
             c_grad_data = c_grad.data
             a_grad_data *= c_grad_data
             b_grad_data *= c_grad_data
@@ -35,14 +34,6 @@ class AddFunc(Function):
         a_grad = Tensor(a_grad_data)
         b_grad = Tensor(b_grad_data)
 
+        self.saved_context = None
+
         return a_grad, b_grad
-
-
-
-
-
-
-
-
-
-
