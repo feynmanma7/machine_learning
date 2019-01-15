@@ -1,14 +1,17 @@
 from returing.nn.module.module import Module
 from returing.nn.tensor.parameter import Parameter
 from returing.nn.util.initialization import random_init
-from returing.nn.module.conv import conv2d_module
+from returing.nn.module.conv import conv2d_cell
 from returing.nn.function.activation.relu import ReLU
 
 import numpy as np
-np.random.seed()
+np.random.seed(20170430)
 
 
 class Conv2D(Module):
+
+    # list of Parameter
+    parameters = None
 
     # Parameter, [n_output_channel, n_input_channel, K, K]
     W = None
@@ -53,7 +56,7 @@ class Conv2D(Module):
 
         initializer = kwargs['initializer']
 
-        self.conv2d_module = conv2d_module.Conv2DModule(**kwargs)
+        self.conv2d_cell_func = conv2d_cell.Conv2DCell(**kwargs)
 
         if not self.activation:
             self.activation = ReLU
@@ -67,7 +70,6 @@ class Conv2D(Module):
             (self.n_output_channel,
              self.n_input_channel,
              self.kernel_size, self.kernel_size)))
-
         self.parameters = [self.W]
 
         if self.is_bias:
@@ -79,7 +81,7 @@ class Conv2D(Module):
     def forward(self, inputs):
         X, = inputs
 
-        y_pred, = self.conv2d_module(X, self.W, self.bias)
+        y_pred, = self.conv2d_cell_func(X, self.W, self.bias)
 
         y_pred, = self.activation()(y_pred,)
 

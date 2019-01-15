@@ -1,7 +1,7 @@
 from returing.nn.tensor.tensor import Tensor
 
 from returing.nn.function.base import add_fn, \
-    reshape, get_sub_tensor, transpose, concat, sum_fn
+    reshape, get_sub_tensor, transpose, concat, sum_fn, dot_fn
 
 from returing.nn.function.loss.mse import MSELoss
 
@@ -106,11 +106,23 @@ def test_sum():
     print(a.grad.data)
     print(c.grad.data)
 
+
+def test_dot():
+    a = Tensor(np.random.randn(2, 3, 4), requires_grad=True, is_leaf=True)
+    b = Tensor(np.random.randn(4, 5), requires_grad=True, is_leaf=True)
+    c, = dot_fn.Dot()(a, b)
+    print(c.data.shape)
+    c.backward()
+    print(a.grad.data)
+    print(b.grad.data)
+
+
 if __name__ == '__main__':
-    test_add()
+    #test_add()
     #test_reshape()
     #test_get_sub_tensor()
     #test_transpose()
     #test_concat()
     #test_sum()
+    test_dot()
 

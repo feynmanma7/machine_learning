@@ -67,13 +67,3 @@ class BatchSum(Function):
         #self.saved_context = None
 
         return X_grad,
-
-
-
-
-
-
-
-
-
-

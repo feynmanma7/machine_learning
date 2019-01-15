@@ -2,42 +2,42 @@
 
 # Core Codes
 
-> conv2d_layer
+> `conv2d_layer`, contain parameters, call `conv2d_base`
 
-> conv2d_module
+> `conv2d_base`, basic conv2d operation.
 
 
 # Input, Output & Parameters
 
 + Input
 
-> X: [n_samples, n_input_channel, 
+> `X`: [n_samples, n_input_channel, 
 input_width, input_height], e.g. batch of images
 
 + Hyper-parameters
 
-> stride: int, size of move around.
+> `stride`: int, size of move around.
 
-> padding: int, size of pixel to pad
+> `padding`: int, size of pixel to pad
 around the raw input.
 
-> kernel_size: int, symmetric for simplicity, 
+> `kernel_size`: int, symmetric for simplicity, 
 size of convolution window.
 
-> is_bias: bool, if true, add bias.
+> `is_bias`: bool, if true, add bias.
 
 + Output
 
-> y_pred: [n_samples, n_output_channel, 
+> `y_pred`: [n_samples, n_output_channel, 
 output_width, output_height], 
 out_size = (in_size - kernel_size + 2*padding)/stride + 1.
 
 + Learnable Parameters
 
-> W: [n_output_channel, n_input_channel, 
-kernel_size, kernel_size]
+> `W`: [n_output_channel, n_input_channel, 
+kernel_size, kernel_size], weights.
 
-> bias: [n_output_channel, ] (optional, default is_bias=True)
+> `bias`: [n_output_channel, ] (optional, default is_bias=True)
 
 # Design
 

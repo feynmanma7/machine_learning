@@ -12,10 +12,10 @@ from returing.nn.function.base.add_fn import BatchAdd
 from returing.nn.function.conv.padding2d import Padding2D
 
 
-class Conv2DModule(Module):
+class Conv2DCell(Module):
 
     def __init__(self, **kwargs):
-        super(Conv2DModule, self).__init__()
+        super(Conv2DCell, self).__init__()
 
         self.n_input_channel = kwargs['n_input_channel']
         self.input_width = kwargs['input_width']

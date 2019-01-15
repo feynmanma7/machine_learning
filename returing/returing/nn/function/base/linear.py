@@ -97,13 +97,3 @@ class Linear(Function):
         #self.saved_context = None
 
         return X_grad, W_grad, bias_grad
-
-
-
-
-
-
-
-
-
-
