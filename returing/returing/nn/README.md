@@ -91,7 +91,7 @@ with input tensors and output tensors as `Edge`,
 and a function as `Node`. 
 
 It's better to know what you're implemented is a `Function` or 
-a `Module`.
+a `Module`. 
 
 ## 3. Parameter(Tensor)
 
@@ -106,6 +106,12 @@ with input tensors and output tensors and a function (update rule).
 ## 5. Initializer(Function)
 
 Specifically an optimizer.
+
+## 6. Model(object)
+
+Aggregation of modules(or functions), 
+thus parameters(optional) can be obtained for 
+`Optimizer` to update.
 
 
 

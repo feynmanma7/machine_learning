@@ -3,12 +3,18 @@ from returing.nn.module.rnn import rnn_cell
 from returing.nn.tensor.parameter import Parameter
 from returing.nn.util.initialization import random_init
 #from returing.nn.function.activation import sigmoid, tanh
+from returing.nn.tensor.tensor import Tensor
+import numpy as np
+np.random.seed(20170430)
 
 
 class RNN(Module):
 
     # list of Parameter
     parameters = None
+
+    # list of Parameter
+    modules = None
 
     # Parameter, [hidden_dim, hidden_dim]
     W_hh = None
@@ -25,6 +31,11 @@ class RNN(Module):
     # Parameter, [hidden_dim, ]
     bias_h = None
 
+    # Tensor, [n_samples, n_time_step, hidden_dim]
+    #   If `is_stateful` is True,
+    #   use final state of last batch as initial state of next batch.
+    #state = None
+
     def __init__(self,
                  input_dim=None,
                  hidden_dim=None,
@@ -33,9 +44,11 @@ class RNN(Module):
                  batch_size=None,
                  is_output_bias=True,
                  is_hidden_bias=True,
-                 verbose=1,
+                 is_bi_direction=True,
                  is_return_sequences=True,
-                 initializer=None
+                 verbose=1,
+                 initializer=None,
+                 is_stateful=True,
                  ):
         super(RNN, self).__init__()
 
@@ -46,8 +59,10 @@ class RNN(Module):
         self.batch_size = batch_size
         self.is_output_bias = is_output_bias
         self.is_hidden_bias = is_hidden_bias
-        self.verbose = verbose
+        self.is_bi_direction = is_bi_direction
         self.is_return_sequences = is_return_sequences
+        self.verbose = verbose
+        self.is_stateful = is_stateful
         self.initializer = initializer
 
         self.rnn_cell_func = rnn_cell.RNNCell(
@@ -60,6 +75,9 @@ class RNN(Module):
             is_hidden_bias=self.is_hidden_bias,
             verbose=self.verbose,
             is_return_sequences=self.is_return_sequences)
+
+        # Initialize State, h_0: [hidden_dim, hidden_dim]
+        #self.state = Tensor(np.random.randn(self.hidden_dim, self.hidden_dim))
 
         # Initialize Parameters
         if not initializer:
@@ -105,7 +123,19 @@ class RNN(Module):
             self.parameters.append(self.bias_h)
 
     def forward(self, inputs):
-        inputs, = inputs
-        new_inputs = tuple(list(inputs) + [self.W_xh, self.W_hh, self.W_hy, self.bias_h, self.bias_o])
+        # inputs: tuple of input tensor, contain raw input data.
+
+        if len(inputs) == 1:
+            inputs, = inputs
+            n_samples = inputs[0].data.shape[0]
+
+            # initial state, be initialized or passed.
+            state = Tensor(np.random.randn(
+                n_samples, self.n_time_step, self.hidden_dim))
+        elif len(inputs) == 2:
+            inputs, state = inputs
+
+        new_inputs = tuple(list(inputs) + \
+                    [state, self.W_xh, self.W_hh, self.W_hy, self.bias_h, self.bias_o])
 
         return self.rnn_cell_func(new_inputs)

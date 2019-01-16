@@ -1,8 +1,9 @@
 from returing.nn.tensor.tensor import Tensor
-from returing.nn.module.rnn import rnn_layer
+from returing.nn.module.rnn import rnn_module
 from returing.nn.function.loss.mse import MSELoss
 from returing.nn.function.base.concat import Concat
-
+from returing.nn.module.model import Model
+from returing.nn.optimizer.sgd import SGD
 
 import numpy as np
 
@@ -34,7 +35,7 @@ def test_rnn():
     inputs = tuple(inputs)
     targets = tuple(targets)
 
-    outputs = rnn_layer.RNN(
+    rnn = rnn_module.RNN(
         input_dim=input_dim,
         hidden_dim=hidden_dim,
         output_dim=output_dim,
@@ -43,7 +44,29 @@ def test_rnn():
         is_hidden_bias=is_hidden_bias,
         is_output_bias=is_output_bias,
         verbose=verbose,
-        is_return_sequences=is_return_sequences)(inputs)
+        is_return_sequences=is_return_sequences)
+
+    outputs = rnn(inputs)
+
+    """
+    model = Model()
+    model.add(rnn)
+    model.add(Concat()) # *outputs --> outputs
+    model.add(GetSubTensor()) # outputs, hidden --> outputs 
+
+    n_epoch = 10
+    batch_size = 1
+    verbose = 0
+    loss_fn = MSELoss()
+    optimizer = SGD(lr=1e-4)
+
+    model.compile(n_epoch=n_epoch,
+                  batch_size=batch_size,
+                  verbose=verbose,
+                  loss_fn=loss_fn,
+                  optimizer=optimizer)
+    model.fit(inputs, y)
+    """
 
     # must compute loss and then backward!
 
