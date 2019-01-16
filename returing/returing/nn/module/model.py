@@ -1,4 +1,5 @@
 #from returing.nn.module.module import Module
+from returing.nn.tensor.tensor import Tensor
 
 
 class Model(object):
@@ -29,7 +30,9 @@ class Model(object):
 
 
     def get_parameters(self):
-        # return param_list
+        # Return `param_list`.
+        # param_dict is set after compile,
+        #   when all of the sub-modules have been set or added.
         param_list = []
         for name, sub_param_list in self.param_dict.items():
             param_list += sub_param_list
@@ -37,10 +40,16 @@ class Model(object):
         return param_list
 
     def add(self, _module):
+        """
         if isinstance(self.modules, list):
             self.modules.append(_module)
         else:
             self.modules = [_module]
+        """
+        if not isinstance(self.modules, list):
+            self.modules = []
+
+        self.modules += _module.modules
 
     def forward(self, inputs):
         y_pred = inputs
@@ -67,6 +76,20 @@ class Model(object):
             if isinstance(module.parameters, list):
                 self.param_dict[idx] = module.parameters
 
+    def batch_input_generator(self, X, y):
+        # In the future, from file or other source.
+        n_samples = X.data.shape[0]
+        batch_size = self.batch_size
+        total_batch = int(n_samples / batch_size)
+
+        for batch_idx in range(total_batch):
+            yield Tensor(X.data[batch_idx*batch_size:(batch_idx+1)*batch_size]), \
+                  Tensor(y.data[batch_idx*batch_size:(batch_idx+1)*batch_size])
+
+    def fit_batch(self, X_batch, y_batch):
+        pass
+
+
     def fit(self, X, y):
 
         # X: tuple of (batch) attribute data
@@ -75,16 +98,23 @@ class Model(object):
         # batch_inputs = _get_batch(inputs)
 
         for epoch in range(self.n_epoch):
-            y_pred, = self.forward(X)
+            idx = 0
+            for X_batch, y_batch in self.batch_input_generator(X, y):
+                idx += 1
+                #y_pred_batch, = self.fit_batch(X_batch, y_batch)
+                y_pred_batch, = self.forward(X_batch)
 
-            loss, = self.loss_fn(y_pred, y)
-            if self.verbose == 0:
-                print('Epoch:%d, loss:%.4f' % (epoch, loss.data))
+                #y_pred, = self.forward(X)
 
-            loss.backward()
+                #loss, = self.loss_fn(y_pred, y)
+                loss, = self.loss_fn(y_pred_batch, y_batch)
+                if self.verbose == 0:
+                    print('Epoch:%d, batch:%d, loss:%.4f' % (epoch, idx, loss.data))
 
-            param_list = self.get_parameters()
-            self.optimizer.step(param_list)
+                loss.backward()
+
+                param_list = self.get_parameters()
+                self.optimizer.step(param_list)
 
 
 
