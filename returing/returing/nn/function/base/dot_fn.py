@@ -92,7 +92,7 @@ class Dot(Function):
                     # B_grad_data: [dim, shape_2]
 
                     # [shape_2]
-                    mean_y_pred_data = np.mean(y_pred_grad,
+                    mean_y_pred_data = np.mean(y_pred_grad.data,
                                                axis=tuple(range(0, A_dim-1)))
                     B_grad_data *= mean_y_pred_data
 

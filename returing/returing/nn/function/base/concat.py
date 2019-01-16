@@ -15,15 +15,20 @@ class Concat(Function):
         super(Concat, self).__init__()
 
     def forward(self, inputs):
+
         y_pred_data = []
 
         for input_tensor in inputs:
             y_pred_data.append(input_tensor.data)
 
-        y_pred = Tensor(np.array(y_pred_data))
-
         input_tensor_shape = inputs[0].data.shape
         n_input = len(inputs)
+
+        y_pred = Tensor(np.array(y_pred_data))
+
+        #target_shape = [n_input] + list(input_tensor_shape)
+        #y_pred_data = np.vstack(y_pred_data).reshape(target_shape)
+        #y_pred = Tensor(y_pred_data)
 
         self.saved_context = input_tensor_shape, n_input
 

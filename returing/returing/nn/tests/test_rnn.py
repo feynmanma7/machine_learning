@@ -1,5 +1,9 @@
 from returing.nn.tensor.tensor import Tensor
 from returing.nn.module.rnn import rnn_layer
+from returing.nn.function.loss.mse import MSELoss
+from returing.nn.function.base.concat import Concat
+
+
 import numpy as np
 
 
@@ -17,12 +21,18 @@ def test_rnn():
     is_return_sequences = True
 
     inputs = []
+    targets = []
     for _ in range(n_time_step):
         input_tensor = Tensor(np.random.rand(n_samples, n_time_step, input_dim),
                               requires_grad=True,
                               is_leaf=True)
         inputs.append(input_tensor)
+
+        target_tensor = Tensor(np.random.rand(n_samples, n_time_step, output_dim))
+        targets.append(target_tensor)
+
     inputs = tuple(inputs)
+    targets = tuple(targets)
 
     outputs = rnn_layer.RNN(
         input_dim=input_dim,
@@ -35,9 +45,19 @@ def test_rnn():
         verbose=verbose,
         is_return_sequences=is_return_sequences)(inputs)
 
-    # must compute loss and then backward! 
-    for output_tensor in outputs:
-        print(output_tensor.data)
+    # must compute loss and then backward!
+
+    #for output_tensor in outputs:
+    #    print(output_tensor.data)
+
+    # for tuple of output tensor, concat first, and compute loss!!!
+    y_preds = outputs[:n_time_step]
+    concat_y_pred, = Concat()(*y_preds)
+    concat_y, = Concat()(*targets)
+    loss, = MSELoss()(concat_y_pred, concat_y)
+    print(loss.data)
+    loss.backward()
+    print(inputs[0].grad.data.shape)
 
 
 if __name__ == '__main__':
