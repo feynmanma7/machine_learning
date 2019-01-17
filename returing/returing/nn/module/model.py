@@ -1,6 +1,6 @@
 #from returing.nn.module.module import Module
 from returing.nn.tensor.tensor import Tensor
-
+from queue import Queue
 
 class Model(object):
     # list of module (or function)
@@ -28,28 +28,56 @@ class Model(object):
 
         self.param_dict = {}
 
+    def summary(self):
+        for idx, _module in enumerate(self.modules):
+            print(idx, '-->', _module)
 
     def get_parameters(self):
         # Return `param_list`.
         # param_dict is set after compile,
         #   when all of the sub-modules have been set or added.
+
+        # module queue
+        q = Queue()
+
         param_list = []
+
+        for _module in self.modules:
+            q.put(_module)
+
+        while not q.empty():
+            _module = q.get()
+
+            if isinstance(_module.parameters, list):
+                param_list += _module.parameters
+
+            if _module.child_modules:
+                for _child_module in _module:
+                    q.put(_child_module)
+
+        """
         for name, sub_param_list in self.param_dict.items():
             param_list += sub_param_list
+        """
 
         return param_list
 
     def add(self, _module):
-        """
+        # For a model object, sub-module is added sequentially,
+        #   sub-module of sub-module is ignored,
+        #   while must be registered for parameters.
+
         if isinstance(self.modules, list):
             self.modules.append(_module)
         else:
             self.modules = [_module]
+
         """
         if not isinstance(self.modules, list):
             self.modules = []
 
         self.modules += _module.modules
+        """
 
     def forward(self, inputs):
         y_pred = inputs
@@ -71,10 +99,13 @@ class Model(object):
         self.loss_fn = loss_fn
         self.optimizer = optimizer
 
-        # Collect parameters of each sub-module
+        """
+        # Collect parameters of each sub-module recursively.
         for idx, module in enumerate(self.modules):
+
             if isinstance(module.parameters, list):
                 self.param_dict[idx] = module.parameters
+        """
 
     def batch_input_generator(self, X, y):
         # In the future, from file or other source.

@@ -93,6 +93,9 @@ and a function as `Node`.
 It's better to know what you're implemented is a `Function` or 
 a `Module`. 
 
+Sub-modules (optional) must be registered to 
+`child_modules` set (a `list`).  
+
 ## 3. Parameter(Tensor)
 
 `Tensor` need to be initialized and updated iteratively,
@@ -112,6 +115,15 @@ Specifically an optimizer.
 Aggregation of modules(or functions), 
 thus parameters(optional) can be obtained for 
 `Optimizer` to update.
+
+For Sequential Model, sub-module or function is added
+sequentially and registered immediately orderly.
+
+When `fit` of model is called, sub-module registered
+are applied(call `forward` and return outputs) 
+sequentially in the input order. 
+Note: sub-module of sub-module is ignored in the `fit` function 
+while very important to get parameters of model. 
 
 
 

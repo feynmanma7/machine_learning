@@ -2,9 +2,10 @@
 
 # Core Codes
 
-> `conv2d_layer`, contain parameters, call `conv2d_base`
+> `conv2d_cell`, basic conv2d operation.
 
-> `conv2d_base`, basic conv2d operation.
+> `conv2d_module`, contain parameters, 
+call `conv2d_cell`.
 
 
 # Input, Output & Parameters

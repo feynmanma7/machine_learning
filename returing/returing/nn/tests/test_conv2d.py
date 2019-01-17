@@ -2,7 +2,7 @@ from returing.nn.tensor.tensor import Tensor
 
 from returing.nn.module.model import Model
 
-from returing.nn.module.conv.conv2d_layer import Conv2D
+from returing.nn.module.conv.conv2d_module import Conv2D
 
 from returing.nn.function.conv.padding2d import Padding2D
 
@@ -74,7 +74,7 @@ def test_conv2d():
     print(loss.data)
 
 def test_model():
-    n_samples = 2
+    n_samples = 20
     n_input_channel = 3
     input_width = 28
     input_height = 28
@@ -110,16 +110,17 @@ def test_model():
     model.add(conv2d)
 
     n_epoch = 10
-    batch_size = 1
+    batch_size = 2
     verbose = 0
     loss_fn = MSELoss()
-    optimizer = SGD(lr=1e-4)
+    optimizer = SGD(lr=1e-5)
 
     model.compile(n_epoch=n_epoch,
                 batch_size=batch_size,
                 verbose=verbose,
                 loss_fn=loss_fn,
                 optimizer=optimizer)
+    model.summary()
     model.fit(X, y)
 
 
