@@ -46,9 +46,10 @@ class RNN(Module):
                  is_hidden_bias=True,
                  is_bi_direction=True,
                  is_return_sequences=True,
+                 is_stateful=True,
                  verbose=1,
                  initializer=None,
-                 is_stateful=True,
+                 activation=None
                  ):
         super(RNN, self).__init__()
 
@@ -61,9 +62,10 @@ class RNN(Module):
         self.is_hidden_bias = is_hidden_bias
         self.is_bi_direction = is_bi_direction
         self.is_return_sequences = is_return_sequences
-        self.verbose = verbose
         self.is_stateful = is_stateful
+        self.verbose = verbose
         self.initializer = initializer
+        self.activation = activation
 
         self.rnn_cell_func = rnn_cell.RNNCell(
             input_dim=self.input_dim,
