@@ -6,11 +6,12 @@ import numpy as np
 class Concat(Function):
 
     """
-    Input: tuple of tensor
-    Output: one tensor (return tuple of tensor, but actually only `one` tensor),
+    Input: tuple of tensor, (shape, shape, ..., shape)
+    Output: one tensor, (tuple_length, shape),
+            (return tuple of tensor, but actually only `one` tensor),
             that concat data of  all of input tensors
-
     """
+
     def __init__(self):
         super(Concat, self).__init__()
 

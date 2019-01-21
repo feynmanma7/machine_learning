@@ -132,8 +132,10 @@ class RNN(Module):
             n_samples = inputs[0].data.shape[0]
 
             # initial state, be initialized or passed.
-            state = Tensor(np.random.randn(
-                n_samples, self.n_time_step, self.hidden_dim))
+            #state = Tensor(np.random.randn(
+                #n_samples, self.n_time_step, self.hidden_dim))
+            state = Tensor(np.zeros((n_samples, self.n_time_step, self.hidden_dim)))
+
         elif len(inputs) == 2:
             inputs, state = inputs
 
