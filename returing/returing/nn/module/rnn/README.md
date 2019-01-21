@@ -144,3 +144,26 @@ to let the output of gate is between 0 and 1.
 
 > `hidden`: h_t = tanh(c_t) * out_g_t
 
+# BiLSTM
+
+## Inputs
+
+Same with `LSTM`.
+
++ `inputs`: input_tensor, [n_samples, timestep, input_dim]
+
+## Outputs
+
+Same with `LSTM` (Unless the two states are **Concat**ed).
+
++ `outputs`:  
+
+Get forward result (hiddens_fw, h_T_fw, c_T_fw) by call `LSTM`.
+
+Get backward result (hiddens_bw, h_T_bw, c_T_bw) by call `LSTM` 
+in a reversed way of inputs (set in `LSTM`, to control the loop order).
+
+Return **Concat**, **Sum** or **Mean** of the forward and backward result 
+according to the specified **mode**.
+
+
