@@ -3,6 +3,8 @@ from returing.nn.tensor.tensor import Tensor
 from returing.nn.function.base import add_fn, \
     reshape, get_sub_tensor, transpose, concat, sum_fn, dot_fn
 
+from returing.nn.module.dropout import Dropout
+
 from returing.nn.function.loss.mse import MSELoss
 
 import numpy as np
@@ -116,6 +118,15 @@ def test_dot():
     print(a.grad.data)
     print(b.grad.data)
 
+def test_dropout():
+
+    a = Tensor(np.random.randn(2, 3), requires_grad=True, is_leaf=True)
+    b, = Dropout(dropout_ratio=0.2, is_training_mode=True)(a)
+    print(a.data)
+    print(b.data)
+    b.backward()
+    print(a.grad.data)
+
 
 if __name__ == '__main__':
     #test_add()
@@ -124,5 +135,6 @@ if __name__ == '__main__':
     #test_transpose()
     #test_concat()
     #test_sum()
-    test_dot()
+    #test_dot()
+    test_dropout()
 
