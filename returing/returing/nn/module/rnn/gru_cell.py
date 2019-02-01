@@ -54,16 +54,14 @@ class GRUCell(Module):
 
         Three Gates
 
-        `*` means Matrix Multiplication.
-
             Use Two biases in one gate ?
 
-        + `reset_gate`: r_g_t = sigmoid ( h_{t-1} * W_hh_r + X_t * W_xh_r + b_h_r )
+        + `reset_gate`: r_g_t = sigmoid ( h_{t-1} \cdot W_hh_r + X_t \cdot W_xh_r + b_h_r )
 
-        + `update_gate`: u_g_t = sigmoid ( h_{t-1} * W_hh_u + X_t * W_xh_u + b_h_u )
+        + `update_gate`: u_g_t = sigmoid ( h_{t-1} \cdot W_hh_u + X_t \cdot W_xh_u + b_h_u )
 
-        + `new_gate`: n_g_t = tanh ( X_t * W_xh_n + b_h_n
-                + r_g_t * ( h_{t-1} * W_hh_n + b_h_n ) )
+        + `new_gate`: n_g_t = tanh ( X_t \cdot W_xh_n + b_h_n
+                + r_g_t * ( h_{t-1} \dot W_hh_n + b_h_n ) )
 
         + `output`: h_t = (1 - u_g_t) * n_g_t + u_g_t * h_{t-1}
 

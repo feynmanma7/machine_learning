@@ -46,9 +46,9 @@ class RNNCell(Module):
 
         # Output
         if return_sequences:
-            return y_0, y_1, ..., y_{T-1}, h_0, h_1, ..., h_{T-1}
+            return y_0, y_1, ..., y_{T-1}, h_{T-1}
         else:
-            return y_{T-1}, h_0, h_1, ..., h_{T-1}
+            return y_{T-1}, h_{T-1}
 
         y_pred: [n_samples, n_time_step, output_dim]
         h_t: [n_samples, n_time_step, hidden_dim], t = 0, 1, ..., n_time_step-1
@@ -60,7 +60,6 @@ class RNNCell(Module):
             b_o: [output_dim, ]
         y_t = h_t.dot(W_{hy}) + b_o
 
-
         ## `h_t`
             W_{hh}: [hidden_dim, hidden_dim]
             h_{t-1}: [n_samples, n_time_step, hidden_dim]
@@ -69,8 +68,9 @@ class RNNCell(Module):
             W_{xh}: [input_dim, hidden_dim]
             b_h: [hidden_dim, ]
 
-        h_t = tanh( h_{t-1}.dot(W_{hh}) + h_{t+1}.dot(W_{hh})
-                    + X_t.dot(W_{xh}) + b_h  )
+        h_t = h_{t-1}.dot(W_{hh}) + X_t.dot(W_{xh}) + b_h
+        h_t = tanh(h_t)
+
         """
         # In the order of x --> h --> o
         #X_0, X_1, ... , X_{T-1}, h_0, W_xh, W_hh, W_hy, b_h, b_o = inputs
@@ -125,22 +125,6 @@ class RNNCell(Module):
             hh, = Dot()(h_t, W_hh)
 
             h_t, = Add()(xh, hh)
-
-            """
-            # X_t: [n_samples, n_time_step, input_dim]
-            # W_xh: [input_dim, hidden_dim]
-            # h_t: [n_samples, n_time_step, hidden_dim]
-            h_t, = Dot()(X_t, W_xh)
-            if t > 1:
-                # h[t-1]: [n_samples, n_time_step, hidden_dim]
-                # W_hh: [hidden_dim, hidden_dim]
-                # a: [n_samples, n_time_step, hidden_dim]
-                a, = Dot()(hiddens[t-1], W_hh)
-
-                # h_t: [n_samples, n_time_step, hidden_dim]
-                # a: [n_samples, n_time_step, hidden_dim]
-                h_t, = Add()(h_t, a)
-            """
 
             if self.is_hidden_bias:
                 # h_t: [n_samples, n_time_step, hidden_dim]

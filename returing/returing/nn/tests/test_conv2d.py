@@ -2,7 +2,7 @@ from returing.nn.tensor.tensor import Tensor
 
 from returing.nn.module.model import Model
 
-from returing.nn.module.conv.conv2d_module import Conv2D
+from returing.nn.module.conv.conv2d import Conv2D
 
 from returing.nn.function.conv.padding2d import Padding2D
 

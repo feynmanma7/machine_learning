@@ -1,5 +1,5 @@
 from returing.nn.tensor.tensor import Tensor
-from returing.nn.module.rnn import rnn_module
+from returing.nn.module.rnn import rnn
 from returing.nn.function.loss.mse import MSELoss
 from returing.nn.function.base.concat import Concat
 from returing.nn.module.model import Model
@@ -35,7 +35,7 @@ def test_rnn():
     inputs = tuple(inputs)
     targets = tuple(targets)
 
-    rnn = rnn_module.RNN(
+    rnn = rnn.RNN(
         input_dim=input_dim,
         hidden_dim=hidden_dim,
         output_dim=output_dim,
@@ -83,5 +83,20 @@ def test_rnn():
     print(inputs[0].grad.data.shape)
 
 
+def test_birnn():
+    # TODO
+    pass
+
+def test_lstm():
+    pass
+
+def test_gru():
+    pass
+
+def test_bilistm():
+    pass
+
 if __name__ == '__main__':
     test_rnn()
+    #test_birnn()
+    #test_lstm()

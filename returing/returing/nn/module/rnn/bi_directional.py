@@ -1,5 +1,5 @@
 from returing.nn.module.module import Module
-from returing.nn.module.rnn.rnn_module import RNN
+from returing.nn.module.rnn.rnn import RNN
 from returing.nn.tensor.tensor import Tensor
 from returing.nn.function.base.concat import Concat
 import numpy as np

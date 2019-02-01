@@ -11,6 +11,8 @@ class Dense(Module):
 
     inputs = None
     outputs = None
+
+    # list of parameter
     parameters = None
 
     def __init__(self,
@@ -42,6 +44,12 @@ class Dense(Module):
             self.parameters.append(self.bias)
 
     def forward(self, inputs):
+        # TODO
+        # Input: X, tensor --> tuple of tensor?
+        #   Or Concat first then use current Dense?
+        #   Why not use the existed Module ? ? ?
+        # In Keras, input of Dense Layer is `ONE` nD-Tensor.
+
         """
         Input: X, tensor
             X: [n_samples, n_in_features]

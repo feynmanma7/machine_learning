@@ -4,7 +4,7 @@
 
 > `conv2d_cell`, basic conv2d operation.
 
-> `conv2d_module`, contain parameters, 
+> `conv2d`, module contain parameters, 
 call `conv2d_cell`.
 
 
@@ -44,7 +44,7 @@ kernel_size, kernel_size], weights.
 
 The Convolutional procedure is composed of some <b>atom</b> `Function`.
 
-Details are in the file of `conv2d_module.py`.
+Details are in the file of `conv2d.py`.
 
 ## Convolutional Procedure
 
