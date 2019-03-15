@@ -5,6 +5,35 @@ from keras.utils import np_utils
 import numpy as np
 np.random.seed(20170430)
 
+
+def file_generator(input_path, V=10, window_size=3, batch_size=2):
+
+    count = 0
+
+    while True:
+        x = []
+        y = []
+
+        with open(input_path, 'r') as f:
+
+            for line in f:
+                buf = line.split(',')
+                x.append(buf[:-1])
+
+                y_ = buf[-1]
+                y_ = np_utils.to_categorical(y_, V)
+                y.append(y_)
+
+                count += 1
+
+                if count % batch_size == 0:
+                    yield np.array(x, dtype=np.float), np.array(y, dtype=np.float)
+
+                    x = []
+                    y = []
+                    count = 0
+
+
 def data_generator(V=10, window_size=3, batch_size=2):
 
     while True:
@@ -57,7 +86,9 @@ def train_model():
     batch_size = 10
     steps_per_epoch = int(num_samples / batch_size)
 
-    model.fit_generator(data_generator(V=V,
+    input_path = 'input.txt'
+    model.fit_generator(file_generator(input_path=input_path,
+                                       V=V,
                                        window_size=window_size,
                                        batch_size=batch_size),
                         steps_per_epoch=steps_per_epoch,

@@ -1,10 +1,11 @@
-from returing.recommend_system.train_model import build_model, data_generator
+from returing.recommend_system.train_model import build_model, file_generator
+
 
 def incre_train_model():
-    model_weights_path = 'w2v.model'
     model = build_model()
     model.summary()
 
+    model_weights_path = 'w2v.model'
     model.load_weights(model_weights_path)
 
     V = 10
@@ -16,7 +17,9 @@ def incre_train_model():
     batch_size = 10
     steps_per_epoch = int(num_samples / batch_size)
 
-    model.fit_generator(data_generator(V=V,
+    input_path = 'input_2.txt'
+    model.fit_generator(file_generator(input_path=input_path,
+                                       V=V,
                                        window_size=window_size,
                                        batch_size=batch_size),
                         steps_per_epoch=steps_per_epoch,
