@@ -126,7 +126,7 @@ def bilstm(V=10,
                         output_dim=embedding_dim,
                         #embeddings_initializer='glorot_uniform',
                         input_length=seq_length,
-                         name='sku_seqs_emb')(sku_seqs_input)
+                        name='sku_seqs_emb')(sku_seqs_input)
 
     sku_seqs = Bidirectional(
         LSTM(embedding_dim, return_sequences=True))(sku_seqs)
@@ -146,28 +146,32 @@ def bilstm(V=10,
 
 def bilstm_attention(sku_seqs_input, V=10, seq_length=1, embedding_dim=5):
 
-
-    sku_seqs = Embedding(input_dim=V,
+    embedding_layer = Embedding(input_dim=V,
                          output_dim=embedding_dim,
                          # embeddings_initializer='glorot_uniform',
-                         input_length=seq_length)(sku_seqs_input)
+                         input_length=seq_length,
+                         name='word_embedding_layer')
+
+    sku_seqs_embedding = embedding_layer(sku_seqs_input)
 
     sku_seqs = Bidirectional(
         LSTM(embedding_dim, return_sequences=True),
-        merge_mode='ave')(sku_seqs)
+        merge_mode='ave')(sku_seqs_embedding)
     sku_seqs = attention(sku_seqs, seq_length)
     sku_seqs = BatchNormalization()(sku_seqs)
     sku_seqs = Dropout(0.5)(sku_seqs)
     sku_seqs = Flatten()(sku_seqs)
     output = Dense(8, activation='tanh')(sku_seqs)
+    #output = Model(inputs = sku_seqs_input, outputs = output)
 
-    return output
+    return output, embedding_layer
 
 
-def embedding(seq_input,\
-            input_dim=5,\
-            output_dim=3,\
-            input_length=3):
+def embedding(
+        seq_input,\
+        input_dim=5,\
+        output_dim=3,\
+        input_length=3):
 
     output = Embedding(input_dim=input_dim,\
                     output_dim=output_dim,\
@@ -175,12 +179,28 @@ def embedding(seq_input,\
     return output
 
 
-def transforming(seqs_input, V=10, seq_length=1, embedding_dim=5):
+def shared_embedding(
+        weights,
+        seq_input, \
+        input_dim=5, \
+        output_dim=3, \
+        input_length=3):
 
-    seqs = embedding(seqs_input,\
-                      input_dim=V,\
-                      output_dim=embedding_dim,\
-                      input_length=seq_length)
+    output = Embedding(input_dim=input_dim,\
+                    output_dim=output_dim,\
+                    input_length=input_length, \
+                    trainable=False,
+                    weights=weights)(seq_input)
+    return output
+
+
+def transforming(weights, seqs_input, V=10, seq_length=1, embedding_dim=5):
+
+    seqs = shared_embedding(weights, \
+                    seqs_input,\
+                    input_dim=V,\
+                    output_dim=embedding_dim,\
+                    input_length=seq_length)
 
     seqs = Dense(units=8, activation='tanh')(seqs)
     seqs = Reshape((8, ))(seqs)
@@ -215,28 +235,35 @@ def dssm(seq_length = 5,
 
     # transforming of query
     query_input = Input(shape=(seq_length,))
-    query = bilstm_attention(query_input, \
+    query, embedding_layer = bilstm_attention(query_input, \
                              V = V,\
                              embedding_dim = embedding_dim,\
                              seq_length = seq_length)
 
-    print('query.shape', query.shape)
+    embedding_weights = get_weights(embedding_layer, layer_name='word_embedding_layer')
+    #query = query_model.predict(query_input)
+
+    #print('query.shape', query.shape)
 
     # transforming of pos_doc
     pos_doc_input = Input(shape=(1,))
-    pos_doc = transforming(pos_doc_input,\
-                        V = V,\
-                        embedding_dim = embedding_dim,\
-                        seq_length = 1)
+    pos_doc = transforming(
+        embedding_weights,\
+        pos_doc_input,\
+        V = V,\
+        embedding_dim = embedding_dim,\
+        seq_length = 1)
 
     print('pos_doc.shape', pos_doc.shape)
 
     # transforming of neg_docs
     neg_docs_input = [Input(shape=(1,)) for _ in range(num_neg)]
-    neg_docs = [transforming(neg_doc_input,\
-                        V = V,\
-                        embedding_dim = embedding_dim,\
-                        seq_length = 1) for neg_doc_input in neg_docs_input]
+    neg_docs = [transforming(
+        embedding_weights,\
+        neg_doc_input,\
+        V = V,\
+        embedding_dim = embedding_dim,\
+        seq_length = 1) for neg_doc_input in neg_docs_input]
     print('neg_doc.shape', neg_docs[0].shape)
 
     # compute softmax probability
@@ -251,10 +278,13 @@ def dssm(seq_length = 5,
     #model.summary()
     return model
 
+def get_weights(layer, layer_name='word_embedding_layer'):
+    weights = layer.get_weights()
+    return weights
 
 def train_model():
     V = 100 # vocabulary size
-    embedding_dim = 5 # embedding_dim
+    embedding_dim = 32 # embedding_dim
 
     seq_length = 7 #
 
@@ -269,6 +299,8 @@ def train_model():
                  embedding_dim = embedding_dim)
 
     model.summary()
+
+    weights = model.get_layer('word_embedding_layer').get_weights()
 
     epochs = 100
     workers = 4
