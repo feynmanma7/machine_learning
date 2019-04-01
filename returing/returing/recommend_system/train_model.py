@@ -1,36 +1,85 @@
 import keras.backend as K
-from keras import Sequential
-from keras.layers import Embedding, Dense, Lambda, Reshape
+from keras import Sequential, Model
+from keras.layers import Embedding, Dense, \
+    Lambda, Reshape, Bidirectional, LSTM, \
+    Dropout, Flatten, Multiply, Input, \
+    BatchNormalization, Permute, merge, dot, Activation, Concatenate
 from keras.utils import np_utils
 import numpy as np
 np.random.seed(20170430)
+import random
 
+def sampling(arr_list, num_sample=10):
+    return random.sample(arr_list, num_sample)
 
-def file_generator(input_path, V=10, window_size=3, batch_size=2):
+def file_generator(input_path, V=10, seq_length=5, batch_size=2):
 
     count = 0
 
     while True:
-        x = []
+        seqs = []
+        pos_doc = []
+
+        neg_docs = []
+        num_neg = 4
+        for i in range(num_neg):
+            neg_docs.append([])
+
         y = []
 
         with open(input_path, 'r') as f:
 
             for line in f:
                 buf = line.split(',')
-                x.append(buf[:-1])
 
-                y_ = buf[-1]
-                y_ = np_utils.to_categorical(y_, V)
-                y.append(y_)
+                #seqs.append(buf[:7])
+
+                seqs.append(buf[:2])
+                pos_doc.append(buf[2])
+
+                for idx, neg_doc in enumerate(buf[3:7]):
+                    neg_docs[idx].append(neg_doc)
+
+                #y.append(np.random.randint(2))
+
+                # sparse_binary_crossentropy
+                y.append(0)
 
                 count += 1
 
                 if count % batch_size == 0:
-                    yield np.array(x, dtype=np.float), np.array(y, dtype=np.float)
 
-                    x = []
+                    """
+                    yield np.array(seqs, dtype=np.float), \
+                          np.array(y, dtype=np.float)
+                    """
+
+                    inputs = []
+
+                    seqs = np.array(seqs, dtype=np.float)
+                    inputs.append(seqs)
+
+                    pos_doc = np.array(pos_doc, dtype=np.float)
+                    inputs.append(pos_doc)
+
+                    for i in range(num_neg):
+                        neg_doc = np.array(neg_docs[i], dtype=np.float)
+                        inputs.append(neg_doc)
+
+                    y = np.array(y, dtype=np.float)
+
+                    yield inputs, y
+
+                    seqs = []
+                    pos_doc = []
+
+                    neg_docs = []
+                    num_neg = 4
+                    for i in range(num_neg):
+                        neg_docs.append([])
+
                     y = []
+
                     count = 0
 
 
@@ -52,35 +101,176 @@ def data_generator(V=10, window_size=3, batch_size=2):
         yield np.array(x), np.array(y)
         x, y = [], []
 
+def attention(inputs, seq_length):
+    """
+    Input: inputs (batch_size, seq_length, input_dim)
+    Output: (batch_size, seq_length, input_dim)
+    """
 
-def build_model(V=10,
+    #print('inputs.shape', inputs.shape)
+
+    a = Permute((2, 1))(inputs)
+    a = Dense(seq_length, activation='softmax')(a)
+    a_probs = Permute((2, 1))(a)
+    output = Multiply()([inputs, a_probs])
+    return output
+
+
+def bilstm(V=10,
                 embedding_dim=5,
-                window_size=3):
-    model = Sequential()
-    model.add(Embedding(input_dim=V,
-                        output_dim=embedding_dim,
-                        embeddings_initializer='glorot_uniform',
-                        input_length=window_size * 2))
+                seq_length=3):
 
-    model.add(Lambda(lambda x: K.mean(x, axis=1), output_shape=(embedding_dim,)))
-    # model.add(Reshape(embedding_dim, ))
-    model.add(Dense(V, activation='softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adadelta')
+    sku_seqs_input = Input(shape=(seq_length, ), name='sku_seqs_input')
+
+    sku_seqs = Embedding(input_dim=V,
+                        output_dim=embedding_dim,
+                        #embeddings_initializer='glorot_uniform',
+                        input_length=seq_length,
+                         name='sku_seqs_emb')(sku_seqs_input)
+
+    sku_seqs = Bidirectional(
+        LSTM(embedding_dim, return_sequences=True))(sku_seqs)
+    sku_seqs = attention(sku_seqs, seq_length)
+    sku_seqs = BatchNormalization()(sku_seqs)
+    sku_seqs = Dropout(0.5)(sku_seqs)
+    sku_seqs = Flatten()(sku_seqs)
+    output = Dense(1, activation='sigmoid')(sku_seqs)
+
+    model = Model(inputs=sku_seqs_input, \
+                  outputs=output)
+
+    model.compile(loss='binary_crossentropy', optimizer='sgd')
 
     return model
 
-def train_model():
-    V = 10 # vocabulary size
-    embedding_dim = 5 # embedding_dim
-    window_size = 3 # context size = window_size * 2
 
-    model = build_model(V=V,
-                        embedding_dim=embedding_dim,
-                        window_size=window_size)
+def bilstm_attention(sku_seqs_input, V=10, seq_length=1, embedding_dim=5):
+
+
+    sku_seqs = Embedding(input_dim=V,
+                         output_dim=embedding_dim,
+                         # embeddings_initializer='glorot_uniform',
+                         input_length=seq_length)(sku_seqs_input)
+
+    sku_seqs = Bidirectional(
+        LSTM(embedding_dim, return_sequences=True),
+        merge_mode='ave')(sku_seqs)
+    sku_seqs = attention(sku_seqs, seq_length)
+    sku_seqs = BatchNormalization()(sku_seqs)
+    sku_seqs = Dropout(0.5)(sku_seqs)
+    sku_seqs = Flatten()(sku_seqs)
+    output = Dense(8, activation='tanh')(sku_seqs)
+
+    return output
+
+
+def embedding(seq_input,\
+            input_dim=5,\
+            output_dim=3,\
+            input_length=3):
+
+    output = Embedding(input_dim=input_dim,\
+                    output_dim=output_dim,\
+                    input_length=input_length)(seq_input)
+    return output
+
+
+def transforming(seqs_input, V=10, seq_length=1, embedding_dim=5):
+
+    seqs = embedding(seqs_input,\
+                      input_dim=V,\
+                      output_dim=embedding_dim,\
+                      input_length=seq_length)
+
+    seqs = Dense(units=8, activation='tanh')(seqs)
+    seqs = Reshape((8, ))(seqs)
+
+    return seqs
+
+
+def compute_prob(query, docs):
+    """
+    Input:
+        query: query transforming
+        docs: list of doc(pos + negs) transforming
+
+    Output:
+        softmax of dot(query, doc)
+    """
+    q_doc_dot = [dot([query, doc], axes=1, normalize=True) for doc in docs]
+    q_doc_dot = Concatenate(axis=1)(q_doc_dot)
+    prob = Activation("softmax")(q_doc_dot)
+
+    return prob
+
+
+def dssm(seq_length = 5,
+         num_neg = 6,
+         V = 10,
+         embedding_dim = 5):
+    """
+    Input:
+    Output:
+    """
+
+    # transforming of query
+    query_input = Input(shape=(seq_length,))
+    query = bilstm_attention(query_input, \
+                             V = V,\
+                             embedding_dim = embedding_dim,\
+                             seq_length = seq_length)
+
+    print('query.shape', query.shape)
+
+    # transforming of pos_doc
+    pos_doc_input = Input(shape=(1,))
+    pos_doc = transforming(pos_doc_input,\
+                        V = V,\
+                        embedding_dim = embedding_dim,\
+                        seq_length = 1)
+
+    print('pos_doc.shape', pos_doc.shape)
+
+    # transforming of neg_docs
+    neg_docs_input = [Input(shape=(1,)) for _ in range(num_neg)]
+    neg_docs = [transforming(neg_doc_input,\
+                        V = V,\
+                        embedding_dim = embedding_dim,\
+                        seq_length = 1) for neg_doc_input in neg_docs_input]
+    print('neg_doc.shape', neg_docs[0].shape)
+
+    # compute softmax probability
+    prob = compute_prob(query, [pos_doc] + neg_docs)
+    print('prob.shape', prob.shape)
+
+    model = Model(inputs = [query_input, pos_doc_input] + neg_docs_input,\
+                  outputs = prob)
+
+    #model.compile(loss='binary_crossentropy', optimizer='sgd')
+    model.compile(loss='sparse_categorical_crossentropy', optimizer='sgd')
+    #model.summary()
+    return model
+
+
+def train_model():
+    V = 100 # vocabulary size
+    embedding_dim = 5 # embedding_dim
+
+    seq_length = 7 #
+
+    """
+    model = bilstm(V=V,
+                    embedding_dim=embedding_dim,
+                    seq_length=seq_length)
+    """
+    model = dssm(seq_length = 2,\
+                 num_neg = 4,\
+                 V = V,\
+                 embedding_dim = embedding_dim)
 
     model.summary()
 
-    epochs = 1000
+    epochs = 100
     workers = 4
     num_samples = 100
     batch_size = 10
@@ -89,7 +279,7 @@ def train_model():
     input_path = 'input.txt'
     model.fit_generator(file_generator(input_path=input_path,
                                        V=V,
-                                       window_size=window_size,
+                                       seq_length=seq_length,
                                        batch_size=batch_size),
                         steps_per_epoch=steps_per_epoch,
                         epochs=epochs,
