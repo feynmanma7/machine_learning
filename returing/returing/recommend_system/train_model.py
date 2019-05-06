@@ -152,17 +152,16 @@ def bilstm_attention(sku_seqs_input, V=10, seq_length=1, embedding_dim=5):
                          input_length=seq_length,
                          name='word_embedding_layer')
 
-    sku_seqs_embedding = embedding_layer(sku_seqs_input)
+    sku_seqs = embedding_layer(sku_seqs_input)
 
-    sku_seqs = Bidirectional(
-        LSTM(embedding_dim, return_sequences=True),
-        merge_mode='ave')(sku_seqs_embedding)
+    # num_params: 4 * ((x+y) * y + y), W_xh * X_t + W_hh * h_{t-1} + b_h
+    sku_seqs = Bidirectional(LSTM(units=32, return_sequences=True),
+                             merge_mode='ave')(sku_seqs)
     sku_seqs = attention(sku_seqs, seq_length)
     sku_seqs = BatchNormalization()(sku_seqs)
     sku_seqs = Dropout(0.5)(sku_seqs)
     sku_seqs = Flatten()(sku_seqs)
     output = Dense(8, activation='tanh')(sku_seqs)
-    #output = Model(inputs = sku_seqs_input, outputs = output)
 
     return output, embedding_layer
 
@@ -223,6 +222,8 @@ def compute_prob(query, docs):
 
     return prob
 
+#def get_embedding_layer():
+
 
 def dssm(seq_length = 5,
          num_neg = 6,
@@ -240,11 +241,9 @@ def dssm(seq_length = 5,
                              embedding_dim = embedding_dim,\
                              seq_length = seq_length)
 
-    embedding_weights = get_weights(embedding_layer, layer_name='word_embedding_layer')
-    #query = query_model.predict(query_input)
+    embedding_weights = get_weights(embedding_layer)
 
-    #print('query.shape', query.shape)
-
+    # Using shared_embedding_weights
     # transforming of pos_doc
     pos_doc_input = Input(shape=(1,))
     pos_doc = transforming(
@@ -273,12 +272,10 @@ def dssm(seq_length = 5,
     model = Model(inputs = [query_input, pos_doc_input] + neg_docs_input,\
                   outputs = prob)
 
-    #model.compile(loss='binary_crossentropy', optimizer='sgd')
     model.compile(loss='sparse_categorical_crossentropy', optimizer='sgd')
-    #model.summary()
     return model
 
-def get_weights(layer, layer_name='word_embedding_layer'):
+def get_weights(layer):
     weights = layer.get_weights()
     return weights
 
@@ -300,15 +297,21 @@ def train_model():
 
     model.summary()
 
-    weights = model.get_layer('word_embedding_layer').get_weights()
+    model_weights_path = 'models/w2v.model'
 
+    model.load_weights(model_weights_path)
+
+    layer = model.get_layer("word_embedding_layer")
+    print(layer.get_weights()[0].shape)
+
+    return
     epochs = 100
     workers = 4
     num_samples = 100
     batch_size = 10
     steps_per_epoch = int(num_samples / batch_size)
 
-    input_path = 'input.txt'
+    input_path = 'data/input.txt'
     model.fit_generator(file_generator(input_path=input_path,
                                        V=V,
                                        seq_length=seq_length,
@@ -320,7 +323,9 @@ def train_model():
                         verbose=1
                         )
 
-    model.save_weights("w2v.model")
+
+    model.save_weights(model_weights_path)
+
 
 
 if __name__ == '__main__':
