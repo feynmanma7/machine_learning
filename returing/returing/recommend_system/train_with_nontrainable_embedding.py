@@ -54,8 +54,11 @@ def build_model():
 
 class DataGenerator(keras.utils.Sequence):
 
-    def __init__(self):
-        pass
+    def __init__(self, input_path=None, line_offset=None):
+        super(DataGenerator, self).__init__()
+
+        self.input_path = input_path
+        self.line_offset = line_offset
 
     def __len__(self):
         total_num = 200
@@ -64,29 +67,38 @@ class DataGenerator(keras.utils.Sequence):
         return int(n_batch)
 
     def __getitem__(self, idx):
-        input_path = 'data/train.txt'
-        fr = open(input_path, 'r')
+        #input_path = 'data/train.txt'
+        fr = open(self.input_path, 'r')
+        fr.seek(self.line_offset[idx])
 
         line_count = 0
 
         batch_size = 5
 
         inputs = []
+        count = 0
         for line in fr:
+            """
             line_count += 1
 
             if line_count < idx * batch_size or \
                 line_count >= (idx + 1) * batch_size:
                 continue
+            """
 
+            count += 1
             data = np.array(line[:-1].split(','), dtype=np.float32)
             inputs.append(data)
 
-        inputs = np.array(inputs, dtype=np.float32)
-        y = np.random.randn(batch_size)
+            if count % batch_size == 0:
+                inputs = np.array(inputs, dtype=np.float32)
+                y = np.random.randn(inputs.shape[0])
 
-        print(inputs)
-        return inputs, y
+                fr.close()
+                return inputs, y
+
+        #print(inputs)
+        #return inputs, y
 
 
 def train_generator():
@@ -109,10 +121,11 @@ def train_generator():
             inputs.append(data)
 
             if line_count % batch_size == 0:
+                line_count = 0
+                batch_size = np.random.randint(low=3, high=10)
                 inputs = np.array(inputs, dtype=np.float32)
-                y = np.random.randn(batch_size)
+                y = np.random.randn(inputs.shape[0])
 
-                #print('\npid', os.getpid(), inputs, '\n')
                 yield inputs, y
                 inputs = []
 
@@ -139,11 +152,20 @@ def main():
     return
     """
 
-    total_num = 10
+    total_num = 100
     batch_size = 5
     epochs = 2
-    model.fit_generator(#generator=train_generator(),
-        generator=DataGenerator(),
+
+    input_path = 'data/train.txt'
+    line_offset = []
+    offset = 0
+    for line in open(input_path, 'r'):
+        line_offset.append(offset)
+        offset += len(line)
+
+    model.fit_generator(
+        #generator=train_generator(),
+        generator=DataGenerator(input_path=input_path, line_offset=line_offset),
                         epochs=epochs,
                         steps_per_epoch=total_num/batch_size,
                         use_multiprocessing=True,
